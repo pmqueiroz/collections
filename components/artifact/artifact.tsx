@@ -45,6 +45,8 @@ type Motion = {
   last: number;
   wheel: number;
   drag: { x: number; y: number } | null;
+  pointers: Map<number, { x: number; y: number }>;
+  pinch: number | null;
 };
 
 function spring(
@@ -106,6 +108,8 @@ export function Artifact({
     last: 0,
     wheel: 0,
     drag: null,
+    pointers: new Map(),
+    pinch: null,
   });
   const kickRef = useRef<() => void>(() => {});
 
@@ -212,9 +216,28 @@ export function Artifact({
     observer.observe(root);
     resize();
 
+    const pinchSpan = () => {
+      const [a, b] = [...m.pointers.values()];
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    };
+
     const onMove = (event: PointerEvent) => {
       const current = live.current.mode;
-      if (current === "tilt") {
+      const pinching =
+        current === "orbit" &&
+        m.pinch !== null &&
+        m.pointers.size === 2 &&
+        m.pointers.has(event.pointerId);
+      if (pinching) {
+        m.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        const span = pinchSpan();
+        const ratio = span / (m.pinch ?? span);
+        const zoomHandler = live.current.onZoom;
+        if ((ratio > 1.1 || ratio < 0.91) && zoomHandler) {
+          zoomHandler(ratio > 1 ? 1 : -1);
+          m.pinch = span;
+        }
+      } else if (current === "tilt") {
         const rect = root.getBoundingClientRect();
         const nx = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         const ny = ((event.clientY - rect.top) / rect.height) * 2 - 1;
@@ -237,13 +260,21 @@ export function Artifact({
     };
     const onDown = (event: PointerEvent) => {
       if (live.current.mode !== "orbit") return;
+      m.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (m.pointers.size === 2) {
+        m.pinch = pinchSpan();
+        m.drag = null;
+        return;
+      }
       m.drag = { x: event.clientX, y: event.clientY };
       try {
         root.setPointerCapture(event.pointerId);
       } catch {}
       root.style.cursor = "grabbing";
     };
-    const onUp = () => {
+    const onUp = (event: PointerEvent) => {
+      m.pointers.delete(event.pointerId);
+      if (m.pointers.size < 2) m.pinch = null;
       if (!m.drag) return;
       m.drag = null;
       root.style.cursor = "grab";
