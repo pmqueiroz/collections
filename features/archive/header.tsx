@@ -77,9 +77,11 @@ export function Header({
               active={domain === option.value}
               onClick={() => onDomain(option.value)}
             >
-              <span>{option.label}</span>
-              <span className="mono text-meta text-faint">
-                {counts[option.value]}
+              <span className="flex items-baseline gap-1.5">
+                <span>{option.label}</span>
+                <span className="mono text-meta text-faint">
+                  {counts[option.value]}
+                </span>
               </span>
             </TabButton>
           ))}
