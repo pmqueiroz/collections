@@ -86,6 +86,10 @@ either is a decoder change; for zstd the spec must first say whether
   BUFF, must be 4-aligned and in range. `type` must be `image/webp`,
   `image/png` or `image/jpeg` (KTX2 is not accepted: CSS can't display it).
   `encodeRelic` writes `assets` itself; callers never set it.
+- **Shared faces**: when `obv` and `rev` carry byte-identical images (one
+  scan used for both sides), `encodeRelic` writes the bytes once and both
+  entries point at the same `offset`/`length`. Overlapping entries are
+  valid; the decoder slices each face independently.
 - Flag bits 0/1 must agree with the presence of `assets.obv` / `assets.rev`.
 
 `decodeRelic` throws an `Error` whose message is the reason (`not a relic

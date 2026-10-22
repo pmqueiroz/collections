@@ -134,7 +134,10 @@ mesh and faces, and downloads the result as a `.relic` to commit.
   `model` and `assets`, carried through untouched).
 - **Faces**: per side upload / drag-drop an image, pan by dragging, scale
   by wheel, or use the Fit sliders. Images are downscaled to 1400px on the
-  long edge and kept as WebP (PNG/JPEG fallback) data URLs. "Template ↓"
+  long edge and kept as WebP (PNG/JPEG fallback) data URLs. The image keeps
+  its own aspect ratio, so a scan holding both sides can be panned to one
+  half per face (see **Face images** under [Artifact viewer](#artifact-viewer-componentsartifact)); uploading that same scan
+  to both sides is stored once in the relic. "Template ↓"
   exports a 600 dpi PNG print/scan template for the current side and mesh.
 - **Mesh defaults** resets only the mesh; **Clear** resets the whole draft
   for the current kind, `meta` included (detaches it from its entry).
@@ -165,6 +168,17 @@ scaled into a 240px rig.
   Changing `resetKey` zeroes orbit/drag and snaps the flip.
 - Face variants per side: uploaded image → textured "scan" placeholder (when
   the item has `tex`) → untextured clay.
+- **Face images** (`FittedImage` in `surfaces.tsx`, also used by the
+  texture editor's face editor): a face-sized wrapper carries the
+  `fitTransform` (translate % of the face, rotate, scale), and the image
+  inside it is sized to *cover* the face at its natural aspect ratio but is
+  not clipped by `object-fit`. Only the face's own `overflow-hidden`
+  clips, so pan/scale can reach any part of the image (e.g. one coin of a
+  side-by-side scan). Sizing uses container query units
+  (`container-type: size` on the wrapper) and the natural aspect read in
+  `onLoad`; until it loads the image falls back to plain `object-cover`.
+  Fit offsets range ±200%. At the image's default fit, a face whose image
+  matches the face aspect renders exactly as before.
 - `fit` sets the scale divisor: the rig scales to
   `min(width, height) / fit`.
 - Banknotes are 11 strips bent along a parabola (`curve` mm). Stamps use a
