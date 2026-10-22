@@ -2,7 +2,8 @@
 
 The home route (`/`) is the **Master Index**: a catalog of coins, banknotes,
 phonecards and stamps with a list view, an artifact grid, a hover preview, a
-detail drawer with a 3D viewer, and a texture/mesh configurator.
+detail drawer with a 3D viewer, and a texture editor that exports texture
+files.
 
 Implemented from the Claude Design project `Archive Index.dc.html` (plus the
 `Artifact.dc.html` component it imports). The design's template runtime
@@ -13,25 +14,28 @@ rewritten as React + Tailwind.
 
 - `features/archive/catalog.ts` — `CatalogItem` discriminated union (one
   variant per `ArtifactKind`), the static `CATALOG`, labels, condition
-  rank/names, `defaultGeometry(item)`, `itemSubtitle(item)`.
+  rank/names, `KINDS`, `kindGeometry(kind)` (per-kind base mesh),
+  `defaultGeometry(item)` (base mesh overridden by the item's own specs),
+  `itemSubtitle(item)`.
 - `features/archive/columns.ts` — per-domain list columns (`COLUMNS`), cell
   type → class map, min table widths, drawer spec rows (`specRows`).
 - `features/archive/query.ts` — filter/search/sort (`queryCatalog`) and
   domain counts.
 - `features/archive/archive-index.tsx` — client component that owns all
-  index state and the keyboard handler. Props mirror the design's tweakables:
+  index state (including the texture editor draft) and the keyboard
+  handler. Props mirror the design's tweakables:
   `defaultView`, `rowDensity`, `orbitRpm`, `dwell`.
 - `header.tsx`, `list-view.tsx`, `grid-view.tsx`, `hover-preview.tsx`,
   `artifact-caption.tsx`, `silhouette.tsx`, `detail-drawer.tsx` — the views.
 - `compact-header.tsx`, `domain-tab-bar.tsx`, `domain-glyph.tsx` — phone-only
   chrome (see [Mobile](#mobile-compact-layout)).
-- `features/archive/configurator/` — modal (`configurator.tsx`), 2D face
-  editor (`face-editor.tsx`), field schema (`schema.ts`), image ingest,
-  600 dpi template export, sign-in form.
-- `features/archive/config-store.ts` — per-item overrides and
-  `artifactProps(item, config)` which maps an item to `<Artifact>` props.
-- `features/archive/session.ts` — Server Actions `readSession`, `signIn`,
-  `signOut`.
+- `features/archive/texture-editor/` — modal (`texture-editor.tsx`), 2D
+  face editor (`face-editor.tsx`), field schema (`schema.ts`), image
+  ingest, 600 dpi template export, texture file format (`texture-file.ts`).
+- `features/archive/artifact-config.ts` — `ArtifactConfig` (mesh, face
+  images, fits), `blankConfig(geo)`, and `artifactProps(item, config?)`
+  which maps an item to `<Artifact>` props (catalog defaults when no config
+  is given).
 - `components/artifact/` — the reusable 3D `Artifact` viewer (see below).
 
 ## Behavior rules
@@ -46,24 +50,22 @@ rewritten as React + Tailwind.
 - **Hover preview** appears after `dwell` ms (default 300) and is suppressed
   while the drawer is open. Any scroll (capture phase) hides it. It flips to
   the cursor's left when it would overflow the viewport.
-- **Drawer keyboard** (only while open and the configurator is closed):
-  `Esc` close, `E` configure, arrows prev/next (wrap around the *filtered*
-  list), `F` flip, `Space` pause/resume orbit. Keys are ignored while focus
-  is in an input, except `Esc`.
+- **Drawer keyboard** (only while open and the texture editor is closed):
+  `Esc` close, arrows prev/next (wrap around the *filtered* list), `F`
+  flip, `Space` pause/resume orbit. Keys are ignored while focus is in an
+  input, except `Esc`.
 - **Zoom**: buttons step ±0.2, wheel steps ±0.1 per 40px of delta, clamped
   to 0.6–2.4.
-- **Configurator** edits a deep-cloned draft; nothing touches the store until
-  Save. `Esc` closes the sign-in form first, then the modal. Revert reloads
-  the saved config; Catalog defaults resets only the mesh, not images/fit.
-  Uploaded images are downscaled to 1400px on the long edge and stored as
-  WebP (PNG/JPEG fallback) data URLs.
+- **Texture editor** is opened from the header ("Texture editor" on
+  desktop, "Editor" on phones), not from an item. See
+  [Texture editor](#texture-editor).
 
 ## Mobile (compact layout)
 
 Below 720px the index switches to an iOS-style layout taken from the same
 design file (`isCompact` there). The breakpoint is the Tailwind
 `regular:` variant (`--breakpoint-regular: 720px` in `globals.css`); the
-configurator also uses `split:` (900px) to decide one vs two columns.
+texture editor also uses `split:` (900px) to decide one vs two columns.
 
 How it is split between CSS and JS:
 
@@ -75,13 +77,13 @@ How it is split between CSS and JS:
 - **Behavior uses `useMediaQuery`** (`components/ui/use-media-query.ts`,
   `useSyncExternalStore` over `matchMedia`, server snapshot `false`).
   `ArchiveIndex` reads `COMPACT_QUERY` and `FINE_HOVER_QUERY` and passes
-  `compact` to `DetailDrawer` and `Configurator`. Those two are closed on
+  `compact` to `DetailDrawer` and `TextureEditor`. Those two are closed on
   first paint, so the server value never shows.
 
 Compact behavior:
 
 - **Header**: large domain title (`domainTitle`: "Index" for All) + count,
-  List/Grid toggle, 16px search input (no iOS focus zoom), a native
+  List/Grid toggle, an "Editor" button for the texture editor, 16px search input (no iOS focus zoom), a native
   `<select>` overlaid invisibly on the Sort label, and a direction toggle.
   Picking a sort from the select resets direction to ascending.
 - **Bottom tab bar** replaces the domain tabs. Tapping the active domain
@@ -92,44 +94,71 @@ Compact behavior:
 - **Hover preview** never shows when compact or when the device lacks
   `(hover: hover) and (pointer: fine)`.
 - **Detail** is a full-width pushed page: the index shifts left 28% under
-  it, header has a back button labelled with the domain title and a
-  Configure action, the viewer controls become 40px tiles, and a footer
+  it, header has a back button labelled with the domain title, the viewer
+  controls become 40px tiles, and a footer
   holds Prev / position / Next. Swiping right from the left 18px edge drags
   the page; releasing past 30% width or 140px dismisses it. The aside is
   `touch-pan-y` so horizontal moves reach the pointer handlers.
-- **Configurator** is a bottom sheet (12px top radius, enters from below via
-  `starting:`), Cancel / Save in the sheet header, scrim tap closes. Range
-  rows grow to 48px with 16px number inputs. Sign-in shows as a centered
-  alert dialog (`AuthForm layout="dialog"`) instead of the inline footer
-  form. The face editor measures its section and caps the template at
-  `width - 76px` so it fits narrow screens.
+- **Texture editor** is a bottom sheet (12px top radius, enters from below
+  via `starting:`), Close / Download in the sheet header with the kind
+  picker under it, scrim tap closes. Range rows grow to 48px with 16px
+  number inputs; footer buttons use `size="adaptive"`. The face editor
+  measures its section and caps the template at `width - 76px` so it fits
+  narrow screens.
 - **Safe areas**: `viewport-fit=cover` is set in `app/layout.tsx`; headers
   use `pt-safe`, the tab bar, drawer footer and sheet footer use `pb-safe`.
 
 Entry animations use Tailwind `starting:` (`@starting-style`), so the
-configurator animates in but not out (it unmounts on close).
+texture editor animates in but not out (it unmounts on close).
 
-## Persistence and auth
+## Texture editor
 
-Overrides are stored in `localStorage` under `aci.store.v1` (same key as the
-design), keyed by catalog id. This is per-browser only; the design's planned
-`PUT /api/artifacts/:id` endpoint does not exist yet.
+Textures are going to live in this repo (or a DB) rather than in the
+browser, so the editor does not save anything locally. It builds a texture
+for an artifact **kind** and exports it as a file to upload.
 
-Saving or deleting a config requires a session. The design checked a
-hard-coded SHA-256 of `user:password` in the browser and stored the hash in
-`sessionStorage`; that was **not** carried over because anyone could read the
-hash from the bundle and forge the session. Instead:
+- **Kind picker** (Coin / Banknote / Phonecard / Stamp) sits in the modal
+  header. Switching kind resets the mesh to `kindGeometry(kind)` and keeps
+  both face images and fits.
+- **Draft** lives in `ArchiveIndex` state, not in the modal, so closing
+  the editor (`Esc`, Close, scrim) and reopening keeps the work. It is lost
+  on page reload. Starts as `blankTexture("coin")`.
+- **Faces**: per side upload / drag-drop an image, pan by dragging, scale
+  by wheel, or use the Fit sliders. Images are downscaled to 1400px on the
+  long edge and kept as WebP (PNG/JPEG fallback) data URLs. "Template ↓"
+  exports a 600 dpi PNG print/scan template for the current side and mesh.
+- **Mesh defaults** resets only the mesh; **Clear** resets the whole draft
+  for the current kind.
+- **Download** writes `<kind>-texture.json`; **Open…** loads one back for
+  further editing.
+- The preview renders the draft untextured (`textured={false}`), so faces
+  without an image show clay instead of the catalog "scan" placeholder.
 
-- `signIn` compares against `ARCHIVE_USER` / `ARCHIVE_PASSWORD` with
-  `timingSafeEqual` and sets an `httpOnly`, `sameSite=strict` cookie
-  `aci.session` holding an HMAC of the user under `ARCHIVE_SESSION_SECRET`
-  (8 h max age, `secure` in production).
-- `readSession` recomputes the HMAC and compares. The page stays static;
-  the client calls `readSession` on mount.
-- If any of the three env vars is missing, sign-in always fails.
+### Texture file (`texture-file.ts`)
 
-See `.env.example`. Since storage is still local, the session only gates the
-UI; it becomes a real write guard once the API endpoint exists.
+```json
+{
+  "format": "aci.texture",
+  "version": 1,
+  "kind": "stamp",
+  "geo": { "w": 20, "h": 24, "perf": 14, "hole": 0.55, "margin": 1.6 },
+  "obv": "data:image/webp;base64,…",
+  "rev": "",
+  "fo": { "s": 1, "x": 0, "y": 0, "r": 0 },
+  "fr": { "s": 1, "x": 0, "y": 0, "r": 0 }
+}
+```
+
+Everything after `kind` is an `ArtifactConfig`, so a loaded file feeds
+straight into `artifactProps(item, config)`. `parseTexture` rejects files
+without the `format` marker or with an unknown kind; it only keeps `geo` and
+fit keys the kind's defaults define, with matching value types, and drops
+face values that are not `data:image/` URLs. Nothing reads these files at
+runtime yet: the catalog still renders defaults until textures are wired
+into the repo/DB.
+
+There is no auth. The cookie session that gated local saves was removed
+with local storage; add a real write guard when an upload endpoint exists.
 
 ## Artifact viewer (`components/artifact/`)
 
@@ -152,4 +181,4 @@ scaled into a 240px rig.
 - Banknotes are 11 strips bent along a parabola (`curve` mm). Stamps use a
   CSS mask for die-cut perforation; the same mask math
   (`perforationGrid`/`perforationMask` in `geometry.ts`) drives the
-  configurator preview and the PNG template so all three agree.
+  texture editor preview and the PNG template so all three agree.

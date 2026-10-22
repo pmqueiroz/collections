@@ -27,9 +27,9 @@ so bumping the file bumps CI.
   in the dashboard, it would double-deploy.
 - Local link: `.vercel/project.json` (gitignored), via
   `vercel link --project collections --team peam`.
-- Production env vars on Vercel: `ARCHIVE_SESSION_SECRET` (random, sensitive),
-  `ARCHIVE_USER`, `ARCHIVE_PASSWORD` (see [archive.md](./archive.md)).
-  `vercel pull` brings them into the CI build.
+- The app reads no env vars. `ARCHIVE_SESSION_SECRET`, `ARCHIVE_USER` and
+  `ARCHIVE_PASSWORD` may still be set on Vercel from the removed sign-in;
+  they are unused and safe to delete. `vercel pull` still runs in CI.
 
 ## Repo configuration
 

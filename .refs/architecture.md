@@ -23,9 +23,6 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 - **Lint/format:** Biome (`biome.json`), see
   [conventions.md](./conventions.md#imports).
 - **Git hooks:** lefthook (`lefthook.yml`), see [ci-cd.md](./ci-cd.md).
-- **Server Actions:** `features/archive/session.ts` (cookie session).
-  Env: `ARCHIVE_USER`, `ARCHIVE_PASSWORD`, `ARCHIVE_SESSION_SECRET`
-  (`.env.example`).
 - **Toolchain:** Node 24 LTS, pinned in `.tool-versions` (asdf) and
   `engines.node` in `package.json`. npm is the package manager
   (`package-lock.json`).
@@ -58,9 +55,9 @@ Features import from `components/`, never the other way around.
 `modal`) and `ease-drawer`, all as Tailwind `@theme` tokens. The `mono`
 utility sets Geist Mono, zero tracking and tabular figures — use it for every
 code/number label. Breakpoints: `regular` (720px, phone vs everything
-else) and `split` (900px, configurator columns). Phone additions:
+else) and `split` (900px, texture editor columns). Phone additions:
 `text-touch` (16px, used for inputs so iOS does not zoom on focus),
-`tracking-title`, `shadow-page`, `shadow-alert`, and the `pt-safe` /
+`tracking-title`, `shadow-page`, and the `pt-safe` /
 `pb-safe` / `glass` utilities (safe-area padding and the blurred bar
 background). UI chrome uses tokens only; the greys inside the 3D
 artifact meshes are material colors and stay local to `components/artifact/`.
@@ -84,6 +81,7 @@ re-adds. It points agents at the version-matched docs in
 
 - Catalog data is a static array in `features/archive/catalog.ts`; there is
   no database or API.
-- Artifact overrides persist to `localStorage` only (see
-  [archive.md](./archive.md#persistence-and-auth)).
+- Textures are exported as files from the texture editor but nothing loads
+  them yet (see [archive.md](./archive.md#texture-editor)). No env vars or
+  Server Actions.
 - No tests yet. Deployment: see [ci-cd.md](./ci-cd.md).
