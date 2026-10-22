@@ -52,3 +52,13 @@ again, extract it to the shared location from the start.
 
 Consistency is the goal: the same interaction should look and behave the same
 everywhere in the project.
+
+## Imports
+
+No import aliases. Every local import is a relative path
+(`../components/button`), never `@/…`, `~/…` or `#…`. `tsconfig.json` has no
+`paths`/`baseUrl`, and Biome's `style/noRestrictedImports` rule in
+`biome.json` errors on those prefixes, so the pre-commit hook blocks them.
+
+Biome is the only linter/formatter; there is no ESLint or Prettier config.
+Import order is managed by Biome's `organizeImports` assist.

@@ -1,29 +1,34 @@
 # CI/CD
 
-> Template. Replace the specifics (CI provider, workflow file, toolchain,
-> version) once the pipeline exists. Keep the shape: what triggers a run,
-> what gates what, and what's explicitly not set up yet.
+No CI provider is configured yet. The only automated gate is the local
+lefthook pre-commit hook.
 
-[CI provider], `[path to workflow file]`. Runs on [triggers — push to
-main, every PR into main, manual dispatch, …]. [Concurrency/cancellation
-behavior, if any.]
+Toolchain is Node 24 LTS, pinned in `.tool-versions` and `engines.node`.
+Bump both together, and use the same version in CI once it exists.
 
-Toolchain version is pinned to `[version]` (matches `[version pin file]`) via
-`[action/tool used to install it]`. Bump both together when the local
-toolchain moves.
+## Local gate: lefthook
 
-## Jobs
+`lefthook.yml`, installed into `.git/hooks` by the `prepare` script
+(`lefthook install`) on `npm install`. `pre-commit` runs in parallel:
 
-- **`[job name]`** — [what it gates, what it runs: install deps, format
-  check, lint, test]. This is the gate everything else needs.
-- **`[job name]`** — [build/package job]. Depends on `[checks job]`.
-  [What artifact it produces, where it's uploaded, retention.] [Any
-  deliberate scope limit — e.g. debug-only build because there's no signing
-  yet — and why a "real" version would be misleading right now.]
+- **`biome`** — `biome check --write` on staged JS/TS/JSON/CSS files;
+  fixes are re-staged (`stage_fixed`). Fails the commit on unfixable lint
+  errors, including the import-alias ban.
+- **`typecheck`** — `npm run typecheck` (`next typegen && tsc --noEmit`)
+  whenever a `.ts`/`.tsx` file is staged. Runs on the whole project because
+  `tsc` cannot check single files against the project config.
+
+`next build` no longer lints (Next.js 16), so lint must run via the hook or
+`npm run lint`.
+
+## Scripts
+
+- `dev` / `build` / `start` — Next.js.
+- `lint` — `biome check` (lint + format + import sorting, read-only).
+- `format` — `biome format --write`.
+- `typecheck` — `next typegen && tsc --noEmit`.
 
 ## Not set up yet
 
-[Be explicit about what's deliberately deferred: release signing, store
-upload, secrets management, deployment automation, etc. State why it's a
-deliberate scope decision rather than an oversight, and what has to be true
-first (e.g. a `legal.md`/compliance sign-off) before setting it up.]
+CI workflow, tests, preview/production deployment. A CI job should run
+`npm ci`, `npm run lint`, `npm run typecheck`, `npm run build` on Node 24.
