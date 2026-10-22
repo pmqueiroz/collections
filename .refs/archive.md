@@ -29,6 +29,8 @@ rewritten as React + Tailwind.
   index state (including the texture editor draft) and the keyboard
   handler. Props mirror the design's tweakables:
   `defaultView`, `rowDensity`, `orbitRpm`, `dwell`.
+- `features/archive/use-relic-link.ts` — `useRelicLink`, keeps the open
+  detail in the URL (see **Share links** below).
 - `header.tsx`, `list-view.tsx`, `grid-view.tsx`, `hover-preview.tsx`,
   `artifact-caption.tsx`, `silhouette.tsx`, `detail-drawer.tsx` — the views.
 - `compact-header.tsx`, `domain-tab-bar.tsx`, `domain-glyph.tsx` — phone-only
@@ -59,6 +61,16 @@ rewritten as React + Tailwind.
   `Esc` close, arrows prev/next (wrap around the *filtered* list), `F`
   flip, `Space` pause/resume orbit. Keys are ignored while focus is in an
   input, except `Esc`.
+- **Share links**: the open detail is mirrored in the URL as
+  `/?relic=<id>`, so the address bar is a shareable link. Opening, stepping
+  prev/next and closing all use `history.replaceState` (no history entries,
+  Back leaves the page rather than walking relics). On mount the param is
+  read from `window.location` and, if it names a catalog id, that relic
+  opens as if clicked; an unknown id is stripped. The param is read client
+  side (not via `searchParams` / `useSearchParams`) so `/` stays a static
+  prerender; the cost is that a shared link paints the index first and the
+  drawer slides in after hydration. Only the relic id is shared: side,
+  zoom, domain, search and sort are not.
 - **Zoom**: buttons step ±0.2, wheel steps ±0.1 per 40px of delta, clamped
   to 0.6–2.4.
 - **Texture editor** is opened from the header ("Texture editor" on
