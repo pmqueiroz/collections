@@ -9,6 +9,8 @@ explain the *why* and the gotchas.
   code** (docs go in `.refs/`), reusable-component discipline. Read first.
 - [architecture.md](./.refs/architecture.md) — stack, layout, data model,
   extension points, conventions. Fill in as the project takes shape.
+- [archive.md](./.refs/archive.md) — the Master Index feature: catalog,
+  views, keyboard rules, configurator, session/auth, 3D artifact viewer.
 - [ci-cd.md](./.refs/ci-cd.md) — CI/CD pipeline: jobs, toolchain pin, what's
   not set up yet.
 - [incidents/](./.refs/incidents/README.md) — postmortems + standing rules;
