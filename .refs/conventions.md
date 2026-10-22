@@ -62,3 +62,8 @@ No import aliases. Every local import is a relative path
 
 Biome is the only linter/formatter; there is no ESLint or Prettier config.
 Import order is managed by Biome's `organizeImports` assist.
+
+Rule exceptions go in `biome.json` `overrides`, scoped by path, never as
+`biome-ignore` comments (see [No comments in code](#no-comments-in-code)).
+Current one: `noImgElement` is off for `app/**/opengraph-image.tsx`, since
+Satori renders plain `<img>` and `next/image` does not apply there.

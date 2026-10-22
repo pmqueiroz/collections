@@ -108,6 +108,9 @@ manifest without `assets` plus the decoded asset bytes.
   `obv`/`rev`, so all are prerendered. `artifactProps` points `obv`/`rev` at
   `relicAssetUrl(id, face)` when `item.faces[face]` is set, so images never
   travel as Base64 in the page payload.
+- **Share page / preview card**: `app/relics/[id]/` (page and
+  `opengraph-image.tsx`) uses `loadCatalogItem(id)` and `readRelicAsset`;
+  see [archive.md](./archive.md#behavior-rules).
 - **Texture editor**: opens and downloads `.relic` (see
   [archive.md](./archive.md#texture-editor)).
 

@@ -29,8 +29,10 @@ rewritten as React + Tailwind.
   index state (including the texture editor draft) and the keyboard
   handler. Props mirror the design's tweakables:
   `defaultView`, `rowDensity`, `orbitRpm`, `dwell`.
-- `features/archive/use-relic-link.ts` — `useRelicLink`, keeps the open
-  detail in the URL (see **Share links** below).
+- `features/archive/use-relic-history.ts` — `useRelicHistory`, keeps the
+  open detail in the URL and history (see **Share links** below).
+- `app/relics/[id]/page.tsx` + `opengraph-image.tsx` — per-relic share page
+  and its preview card (see **Share links**).
 - `header.tsx`, `list-view.tsx`, `grid-view.tsx`, `hover-preview.tsx`,
   `artifact-caption.tsx`, `silhouette.tsx`, `detail-drawer.tsx` — the views.
 - `compact-header.tsx`, `domain-tab-bar.tsx`, `domain-glyph.tsx` — phone-only
@@ -61,16 +63,47 @@ rewritten as React + Tailwind.
   `Esc` close, arrows prev/next (wrap around the *filtered* list), `F`
   flip, `Space` pause/resume orbit. Keys are ignored while focus is in an
   input, except `Esc`.
-- **Share links**: the open detail is mirrored in the URL as
-  `/?relic=<id>`, so the address bar is a shareable link. Opening, stepping
-  prev/next and closing all use `history.replaceState` (no history entries,
-  Back leaves the page rather than walking relics). On mount the param is
-  read from `window.location` and, if it names a catalog id, that relic
-  opens as if clicked; an unknown id is stripped. The param is read client
-  side (not via `searchParams` / `useSearchParams`) so `/` stays a static
-  prerender; the cost is that a shared link paints the index first and the
-  drawer slides in after hydration. Only the relic id is shared: side,
-  zoom, domain, search and sort are not.
+- **Share links**: the open detail lives at `/relics/<id>`, so the address
+  bar is always a shareable link.
+  - `app/relics/[id]/page.tsx` renders the same `ArchiveIndex` with
+    `relicId`; `generateStaticParams` prerenders every catalog id. The
+    drawer opens in a mount effect, not on the server, because its layout
+    depends on `compact` (JS), which is `false` on the server; a shared
+    link paints the index and the drawer slides in after hydration.
+    Unknown ids call `notFound()`. With `cacheComponents` and
+    `partialPrefetching` the static shell is already streaming, so that
+    response is a 200 with the not-found UI and `noindex`, not a 404;
+    `dynamicParams = false` is not allowed under `cacheComponents`.
+  - **History**: opening from the closed index `pushState`s
+    `{ relicDrawer: true }`; stepping prev/next `replaceState`s. Closing
+    (Esc, Close, scrim, back button, edge swipe) calls `history.back()` when
+    the current entry was pushed by us, otherwise (landed on a shared link)
+    `replaceState`s to `/`. A `popstate` listener maps the path back to
+    state: a known `/relics/<id>` opens that relic, anything else closes.
+    So Back closes the drawer, Forward reopens it, and Back from a landing
+    link leaves the site. Only the relic id is in the URL: side, zoom,
+    domain, search and sort are not.
+  - **Next history patch gotcha**: Next wraps `pushState`/`replaceState`
+    to copy its `__NA`/tree state and sync `usePathname`. It skips that
+    sync when the data object already carries `__NA`, so always pass a
+    fresh object (never `history.state`). Every entry carries the landing
+    page's router tree, so traversing between `/` and `/relics/<id>`
+    never remounts `ArchiveIndex`.
+  - **Metadata**: `generateMetadata` sets title
+    (`<title> · <id> · Master Index`), `itemSummary` as description,
+    Open Graph and `summary_large_image` Twitter tags. `metadataBase` in
+    `app/layout.tsx` is the production origin
+    (`https://collections.pmqueiroz.dev`), so image URLs are absolute
+    there; change it if the domain moves.
+  - **Preview card** (`opengraph-image.tsx`, 1200×630 PNG, prerendered per
+    id): face image (obverse, else reverse) on the left, kind/origin/year,
+    title, `itemSubtitle`, id on the right, site colors hard-coded since
+    Satori cannot read CSS vars. Without a face image it draws a flat
+    per-kind silhouette. Satori's resvg does not paint WebP (it parses the
+    size, then renders blank), so the asset is converted to PNG with
+    `sharp` (explicit dependency, pinned to Next's version) first. The raw
+    asset is shown with `contain`, not the item's `fit`, so a two-sided
+    scan shows both sides.
 - **Zoom**: buttons step ±0.2, wheel steps ±0.1 per 40px of delta, clamped
   to 0.6–2.4.
 - **Texture editor** is opened from the header ("Texture editor" on
