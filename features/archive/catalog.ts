@@ -162,3 +162,7 @@ export function itemSubtitle(item: CatalogItem) {
       : [item.year, item.iso, `${item.denom} ${item.cur}`, item.cond];
   return parts.join(" · ");
 }
+
+export function itemSummary(item: CatalogItem) {
+  return `${KIND_LABEL[item.kind]} from ${item.origin}. ${itemSubtitle(item)}.`;
+}

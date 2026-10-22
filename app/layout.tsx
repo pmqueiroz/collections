@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://collections.pmqueiroz.dev"),
   title: "Master Index",
   description: "Catalog of coins, banknotes, phonecards and stamps.",
   appleWebApp: { capable: true, title: "Master Index" },
