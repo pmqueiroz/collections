@@ -36,8 +36,10 @@ Code is the truth. This file explains the *why* behind the shape it takes.
   Mono via `next/font/google`, `metadata`), `page.tsx` renders the archive
   index at `/`, `globals.css` holds the design tokens.
 - `components/ui/` — shared primitives: `Button` (+ `buttonClass` for
-  non-button elements such as a file `<label>`), `TabButton`,
-  `SegmentedControl`, `SectionLabel`, `RangeField`, and `cx`.
+  non-button elements such as a file `<label>`; `size="adaptive"` is 40px
+  on phones, 28px from `regular:`), `TabButton`, `SegmentedControl`
+  (`touch` and `fill` sizes for phone controls), `SectionLabel`,
+  `RangeField` (taller rows below `regular:`), `useMediaQuery`, and `cx`.
 - `components/artifact/` — the reusable 3D `Artifact` viewer.
 - `features/<name>/` — one directory per feature. Currently
   `features/archive/`, see [archive.md](./archive.md).
@@ -55,7 +57,12 @@ Features import from `components/`, never the other way around.
 `tracking-label`, `tracking-spec`, `tracking-display`), shadows (`float`,
 `modal`) and `ease-drawer`, all as Tailwind `@theme` tokens. The `mono`
 utility sets Geist Mono, zero tracking and tabular figures — use it for every
-code/number label. UI chrome uses tokens only; the greys inside the 3D
+code/number label. Breakpoints: `regular` (720px, phone vs everything
+else) and `split` (900px, configurator columns). Phone additions:
+`text-touch` (16px, used for inputs so iOS does not zoom on focus),
+`tracking-title`, `shadow-page`, `shadow-alert`, and the `pt-safe` /
+`pb-safe` / `glass` utilities (safe-area padding and the blurred bar
+background). UI chrome uses tokens only; the greys inside the 3D
 artifact meshes are material colors and stay local to `components/artifact/`.
 Light theme only; the design has no dark mode.
 
