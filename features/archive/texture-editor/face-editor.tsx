@@ -15,8 +15,11 @@ import {
   perforationPitch,
   round2,
 } from "../../../components/artifact/geometry";
-import type { Fit, Geometry } from "../../../components/artifact/types";
-import type { CatalogItem } from "../catalog";
+import type {
+  ArtifactKind,
+  Fit,
+  Geometry,
+} from "../../../components/artifact/types";
 import { templateDimensions } from "./download-template";
 
 const MAX_WIDTH = 330;
@@ -24,7 +27,7 @@ const MAX_HEIGHT = 220;
 const SIDE_GUTTER = 76;
 
 type FaceEditorProps = {
-  item: CatalogItem;
+  kind: ArtifactKind;
   geo: Geometry;
   image: string;
   fit: Fit;
@@ -35,27 +38,27 @@ type FaceEditorProps = {
 };
 
 function shape(
-  item: CatalogItem,
+  kind: ArtifactKind,
   geo: Geometry,
   scale: number,
   width: number,
   height: number,
 ) {
-  if (item.kind === "coin")
+  if (kind === "coin")
     return {
       radius: "50%",
       safe: (geo.bevel ?? 1) * scale,
       safeRadius: "50%",
       mask: "none",
     };
-  if (item.kind === "card")
+  if (kind === "card")
     return {
       radius: `${round2((geo.r ?? 0) * scale)}px`,
       safe: 3 * scale,
       safeRadius: `${round2(Math.max(0, (geo.r ?? 0) - 3) * scale)}px`,
       mask: "none",
     };
-  if (item.kind === "stamp") {
+  if (kind === "stamp") {
     const gauge = geo.perf ?? 14;
     return {
       radius: "0px",
@@ -68,7 +71,7 @@ function shape(
 }
 
 export function FaceEditor({
-  item,
+  kind,
   geo,
   image,
   fit,
@@ -92,12 +95,12 @@ export function FaceEditor({
     return () => observer.disconnect();
   }, []);
 
-  const [widthMm, heightMm] = templateDimensions(item, geo);
+  const [widthMm, heightMm] = templateDimensions(kind, geo);
   const scale = Math.min(maxWidth / widthMm, MAX_HEIGHT / heightMm);
   const width = widthMm * scale;
   const height = heightMm * scale;
   const { radius, safe, safeRadius, mask } = shape(
-    item,
+    kind,
     geo,
     scale,
     width,
@@ -106,7 +109,7 @@ export function FaceEditor({
   const pan = useRef<{ x: number; y: number; fx: number; fy: number } | null>(
     null,
   );
-  const showChip = item.kind === "card" && geo.chip !== false;
+  const showChip = kind === "card" && geo.chip !== false;
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (!image) return;
@@ -154,7 +157,7 @@ export function FaceEditor({
     >
       <div className="flex flex-col items-center gap-2">
         <div className="mono text-tag text-muted">
-          {item.kind === "coin"
+          {kind === "coin"
             ? `Ø ${widthMm.toFixed(2)} mm`
             : `${widthMm.toFixed(2)} mm`}
         </div>
@@ -204,7 +207,7 @@ export function FaceEditor({
             <div className="pointer-events-none absolute left-0 right-0 top-1/2 -mt-[0.5px] h-px bg-ink/22" />
           </div>
           <div className="w-3.5 mono text-tag text-muted [writing-mode:vertical-rl]">
-            {item.kind === "coin" ? "" : `${heightMm.toFixed(2)} mm`}
+            {kind === "coin" ? "" : `${heightMm.toFixed(2)} mm`}
           </div>
         </div>
       </div>

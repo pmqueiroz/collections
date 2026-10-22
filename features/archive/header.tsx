@@ -1,3 +1,4 @@
+import { Button } from "../../components/ui/button";
 import { SegmentedControl } from "../../components/ui/segmented-control";
 import { TabButton } from "../../components/ui/tab-button";
 import { DOMAINS, type Domain, SORTS, type SortKey } from "./catalog";
@@ -8,8 +9,6 @@ export type View = "list" | "grid";
 type HeaderProps = {
   shown: number;
   total: number;
-  authed: boolean;
-  onSignOut: () => void;
   domain: Domain;
   counts: Record<Domain, number>;
   onDomain: (domain: Domain) => void;
@@ -20,6 +19,7 @@ type HeaderProps = {
   onQuery: (query: string) => void;
   view: View;
   onView: (view: View) => void;
+  onTextureEditor: () => void;
 };
 
 export function sortArrow(
@@ -39,8 +39,6 @@ const VIEWS: { value: View; label: string }[] = [
 export function Header({
   shown,
   total,
-  authed,
-  onSignOut,
   domain,
   counts,
   onDomain,
@@ -51,6 +49,7 @@ export function Header({
   onQuery,
   view,
   onView,
+  onTextureEditor,
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-20 hidden border-b border-line bg-paper pt-safe regular:block">
@@ -60,14 +59,6 @@ export function Header({
           <div className="mono text-control text-faint">
             {shown} / {total}
           </div>
-          {authed && (
-            <button
-              type="button"
-              onClick={onSignOut}
-              aria-label="end session"
-              className="size-1.5 cursor-pointer self-center rounded-full border-0 bg-ink p-0"
-            />
-          )}
         </div>
 
         <nav className="flex gap-0.5">
@@ -112,13 +103,15 @@ export function Header({
           />
         </div>
 
-        <SegmentedControl
-          className="ml-auto"
-          size="lg"
-          options={VIEWS}
-          value={view}
-          onChange={onView}
-        />
+        <div className="ml-auto flex items-center gap-2">
+          <Button onClick={onTextureEditor}>Texture editor</Button>
+          <SegmentedControl
+            size="lg"
+            options={VIEWS}
+            value={view}
+            onChange={onView}
+          />
+        </div>
       </div>
     </header>
   );

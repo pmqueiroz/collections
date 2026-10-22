@@ -10,14 +10,6 @@ import {
 } from "../../components/ui/use-media-query";
 import { CATALOG, type Domain, domainTitle, type SortKey } from "./catalog";
 import { CompactHeader } from "./compact-header";
-import {
-  type ArtifactConfig,
-  type ConfigStore,
-  configFor,
-  loadStore,
-  persistStore,
-} from "./config-store";
-import { Configurator } from "./configurator/configurator";
 import { DetailDrawer, ZOOM_MAX, ZOOM_MIN } from "./detail-drawer";
 import { DomainTabBar } from "./domain-tab-bar";
 import { GridView } from "./grid-view";
@@ -25,7 +17,8 @@ import { Header, type View } from "./header";
 import { HoverPreview, type PreviewPosition } from "./hover-preview";
 import { ListView } from "./list-view";
 import { domainCounts, queryCatalog, type SortDirection } from "./query";
-import { readSession, signOut } from "./session";
+import { TextureEditor } from "./texture-editor/texture-editor";
+import { blankTexture } from "./texture-editor/texture-file";
 
 type ArchiveIndexProps = {
   defaultView?: View;
@@ -56,10 +49,8 @@ export function ArchiveIndex({
   const [flipped, setFlipped] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [resetKey, setResetKey] = useState(0);
-  const [store, setStore] = useState<ConfigStore>({});
-  const [authed, setAuthed] = useState(false);
-  const [configuring, setConfiguring] = useState(false);
-  const [configKey, setConfigKey] = useState(0);
+  const [editing, setEditing] = useState(false);
+  const [texture, setTexture] = useState(() => blankTexture("coin"));
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const compact = useMediaQuery(COMPACT_QUERY);
   const fineHover = useMediaQuery(FINE_HOVER_QUERY, true);
@@ -73,13 +64,6 @@ export function ArchiveIndex({
   const previewItem = preview
     ? CATALOG.find((item) => item.id === preview.id)
     : undefined;
-
-  useEffect(() => {
-    setStore(loadStore());
-    readSession()
-      .then(setAuthed)
-      .catch(() => setAuthed(false));
-  }, []);
 
   const unhover = () => {
     clearTimeout(timer.current);
@@ -146,29 +130,21 @@ export function ArchiveIndex({
       Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, +(current + delta).toFixed(2))),
     );
 
-  const openConfigurator = () => {
-    setConfiguring(true);
-    setConfigKey((key) => key + 1);
+  const openTextureEditor = () => {
+    unhover();
+    setEditing(true);
   };
 
-  const commit = (next: ConfigStore) => {
-    if (!persistStore(next)) return false;
-    setStore(next);
-    setConfiguring(false);
-    return true;
-  };
-
-  const keys = useRef({ open, configuring, step, openConfigurator });
-  keys.current = { open, configuring, step, openConfigurator };
+  const keys = useRef({ open, editing, step });
+  keys.current = { open, editing, step };
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const state = keys.current;
-      if (!state.open || state.configuring) return;
+      if (!state.open || state.editing) return;
       const target = event.target as HTMLElement | null;
       if (event.key === "Escape") setOpen(false);
       else if (target?.tagName === "INPUT") return;
-      else if (event.key === "e" || event.key === "E") state.openConfigurator();
       else if (event.key === "ArrowDown" || event.key === "ArrowRight") {
         event.preventDefault();
         state.step(1);
@@ -195,12 +171,8 @@ export function ArchiveIndex({
     };
   }, []);
 
-  const selectedConfig = configFor(selected, store);
   const selectedIndex = items.findIndex((item) => item.id === selected.id);
   const pageShift = compact && open ? "-translate-x-[28%]" : "";
-  const onSignOut = () => {
-    signOut().finally(() => setAuthed(false));
-  };
   const onView = (next: View) => {
     if (next === "grid") unhover();
     setView(next);
@@ -217,8 +189,6 @@ export function ArchiveIndex({
         <CompactHeader
           domain={domain}
           shown={items.length}
-          authed={authed}
-          onSignOut={onSignOut}
           view={view}
           onView={onView}
           query={query}
@@ -229,12 +199,11 @@ export function ArchiveIndex({
           onToggleDirection={() =>
             setDirection((current) => (current > 0 ? -1 : 1))
           }
+          onTextureEditor={openTextureEditor}
         />
         <Header
           shown={items.length}
           total={CATALOG.length}
-          authed={authed}
-          onSignOut={onSignOut}
           domain={domain}
           counts={COUNTS}
           onDomain={onDomain}
@@ -245,6 +214,7 @@ export function ArchiveIndex({
           onQuery={setQuery}
           view={view}
           onView={onView}
+          onTextureEditor={openTextureEditor}
         />
 
         {items.length === 0 ? (
@@ -272,7 +242,6 @@ export function ArchiveIndex({
         ) : (
           <GridView
             items={items}
-            store={store}
             mode={compact ? "static" : "tilt"}
             onOpen={openItem}
           />
@@ -289,12 +258,7 @@ export function ArchiveIndex({
       />
 
       {preview && previewItem && (
-        <HoverPreview
-          item={previewItem}
-          config={configFor(previewItem, store)}
-          x={preview.x}
-          y={preview.y}
-        />
+        <HoverPreview item={previewItem} x={preview.x} y={preview.y} />
       )}
 
       <DetailDrawer
@@ -303,11 +267,9 @@ export function ArchiveIndex({
         backLabel={domainTitle(domain)}
         position={`${selectedIndex < 0 ? "–" : selectedIndex + 1} / ${items.length}`}
         item={selected}
-        config={selectedConfig}
         onClose={() => setOpen(false)}
         onPrev={() => step(-1)}
         onNext={() => step(1)}
-        onConfigure={openConfigurator}
         spinning={spinning}
         onToggleSpin={() => setSpinning((value) => !value)}
         flipped={flipped}
@@ -324,23 +286,12 @@ export function ArchiveIndex({
         }}
       />
 
-      {configuring && (
-        <Configurator
-          key={configKey}
+      {editing && (
+        <TextureEditor
           compact={compact}
-          item={selected}
-          config={selectedConfig}
-          stored={Boolean(store[selected.id])}
-          authed={authed}
-          onAuthed={() => setAuthed(true)}
-          onSave={(draft: ArtifactConfig) =>
-            commit({ ...store, [selected.id]: draft })
-          }
-          onDelete={() => {
-            const { [selected.id]: _removed, ...rest } = store;
-            return commit(rest);
-          }}
-          onClose={() => setConfiguring(false)}
+          draft={texture}
+          onDraft={setTexture}
+          onClose={() => setEditing(false)}
         />
       )}
     </div>

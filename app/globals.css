@@ -39,7 +39,6 @@
   --shadow-float: 0 18px 40px -14px rgb(22 22 21 / 0.18);
   --shadow-modal: 0 30px 80px -30px rgb(22 22 21 / 0.35);
   --shadow-page: -10px 0 30px -12px rgb(22 22 21 / 0.22);
-  --shadow-alert: 0 24px 60px -20px rgb(22 22 21 / 0.45);
 
   --ease-drawer: cubic-bezier(0.2, 0.7, 0.1, 1);
 }

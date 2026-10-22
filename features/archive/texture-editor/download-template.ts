@@ -3,8 +3,12 @@ import {
   perforationGrid,
   perforationPitch,
 } from "../../../components/artifact/geometry";
-import type { FaceSide, Geometry } from "../../../components/artifact/types";
-import type { CatalogItem } from "../catalog";
+import type {
+  ArtifactKind,
+  FaceSide,
+  Geometry,
+} from "../../../components/artifact/types";
+import { KIND_LABEL } from "../catalog";
 
 const DPI = 600;
 const PAD_MM = 6;
@@ -14,19 +18,18 @@ const CLAY = "#E6E5E0";
 const INK = "#161615";
 const MUTED = "#6E6D6A";
 
-export function templateDimensions(item: CatalogItem, geo: Geometry) {
-  return item.kind === "coin"
+export function templateDimensions(kind: ArtifactKind, geo: Geometry) {
+  return kind === "coin"
     ? [geo.dia ?? 24, geo.dia ?? 24]
     : [geo.w ?? 0, geo.h ?? 0];
 }
 
 export function downloadTemplate(
-  item: CatalogItem,
+  kind: ArtifactKind,
   geo: Geometry,
   side: FaceSide,
 ) {
-  const kind = item.kind;
-  const [widthMm, heightMm] = templateDimensions(item, geo);
+  const [widthMm, heightMm] = templateDimensions(kind, geo);
   const ppm = DPI / 25.4;
   const canvasWidth = Math.round((widthMm + PAD_MM * 2) * ppm);
   const canvasHeight = Math.round((heightMm + PAD_MM * 2 + FOOTER_MM) * ppm);
@@ -133,13 +136,13 @@ export function downloadTemplate(
       : `${widthMm.toFixed(2)} × ${heightMm.toFixed(2)} mm`;
   const sideLabel = side === "obv" ? "OBVERSE" : "REVERSE";
   ctx.fillText(
-    `${item.id} · ${sideLabel} · ${dims} · ${DPI} dpi`,
+    `${KIND_LABEL[kind].toUpperCase()} · ${sideLabel} · ${dims} · ${DPI} dpi`,
     ox,
     canvasHeight - 3 * ppm,
   );
 
   const link = document.createElement("a");
   link.href = canvas.toDataURL("image/png");
-  link.download = `${item.id}-${side}-template.png`;
+  link.download = `${kind}-${side}-template.png`;
   link.click();
 }

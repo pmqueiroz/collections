@@ -1,18 +1,16 @@
 import { Artifact } from "../../components/artifact/artifact";
 import { ArtifactCaption } from "./artifact-caption";
+import { artifactProps } from "./artifact-config";
 import type { CatalogItem } from "./catalog";
-import { type ArtifactConfig, artifactProps } from "./config-store";
 
 export type PreviewPosition = { id: string; x: number; y: number };
 
 export function HoverPreview({
   item,
-  config,
   x,
   y,
 }: {
   item: CatalogItem;
-  config: ArtifactConfig;
   x: number;
   y: number;
 }) {
@@ -22,7 +20,7 @@ export function HoverPreview({
       style={{ left: x, top: y }}
     >
       <div className="relative h-[196px]">
-        <Artifact {...artifactProps(item, config)} mode="static" />
+        <Artifact {...artifactProps(item)} mode="static" />
       </div>
       <ArtifactCaption item={item} />
     </div>

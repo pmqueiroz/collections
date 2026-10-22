@@ -7,8 +7,6 @@ import type { SortDirection } from "./query";
 type CompactHeaderProps = {
   domain: Domain;
   shown: number;
-  authed: boolean;
-  onSignOut: () => void;
   view: View;
   onView: (view: View) => void;
   query: string;
@@ -17,6 +15,7 @@ type CompactHeaderProps = {
   direction: SortDirection;
   onSortKey: (sort: SortKey) => void;
   onToggleDirection: () => void;
+  onTextureEditor: () => void;
 };
 
 const VIEWS: { value: View; label: string }[] = [
@@ -30,8 +29,6 @@ const CONTROL =
 export function CompactHeader({
   domain,
   shown,
-  authed,
-  onSignOut,
   view,
   onView,
   query,
@@ -40,6 +37,7 @@ export function CompactHeader({
   direction,
   onSortKey,
   onToggleDirection,
+  onTextureEditor,
 }: CompactHeaderProps) {
   const sortLabel = SORTS.find((option) => option.value === sort)?.label;
   return (
@@ -51,16 +49,6 @@ export function CompactHeader({
           </h1>
           <div className="mono text-xs text-faint">{shown}</div>
         </div>
-        {authed && (
-          <button
-            type="button"
-            onClick={onSignOut}
-            aria-label="end session"
-            className="flex h-11 w-8 cursor-pointer items-center justify-center border-0 bg-transparent p-0"
-          >
-            <span className="size-[7px] rounded-full bg-ink" />
-          </button>
-        )}
         <SegmentedControl
           className="ml-auto"
           size="touch"
@@ -68,6 +56,17 @@ export function CompactHeader({
           value={view}
           onChange={onView}
         />
+        <button
+          type="button"
+          onClick={onTextureEditor}
+          aria-label="Texture editor"
+          className={cx(
+            CONTROL,
+            "cursor-pointer whitespace-nowrap px-3 text-sm",
+          )}
+        >
+          Editor
+        </button>
       </div>
       <div className="flex gap-2 px-4 pb-3 pt-2">
         <input

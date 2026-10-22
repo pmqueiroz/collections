@@ -4,9 +4,9 @@ import { Button } from "../../components/ui/button";
 import { cx } from "../../components/ui/cx";
 import { SectionLabel } from "../../components/ui/section-label";
 import { SegmentedControl } from "../../components/ui/segmented-control";
+import { artifactProps } from "./artifact-config";
 import { type CatalogItem, KIND_LABEL } from "./catalog";
 import { specRows } from "./columns";
-import { type ArtifactConfig, artifactProps } from "./config-store";
 
 export const ZOOM_MIN = 0.6;
 export const ZOOM_MAX = 2.4;
@@ -17,11 +17,9 @@ type DetailDrawerProps = {
   backLabel: string;
   position: string;
   item: CatalogItem;
-  config: ArtifactConfig;
   onClose: () => void;
   onPrev: () => void;
   onNext: () => void;
-  onConfigure: () => void;
   spinning: boolean;
   onToggleSpin: () => void;
   flipped: boolean;
@@ -53,11 +51,9 @@ export function DetailDrawer({
   backLabel,
   position,
   item,
-  config,
   onClose,
   onPrev,
   onNext,
-  onConfigure,
   spinning,
   onToggleSpin,
   flipped,
@@ -152,22 +148,11 @@ export function DetailDrawer({
                 {backLabel}
               </button>
               <div className="whitespace-nowrap mono text-cell">{item.id}</div>
-              <button
-                type="button"
-                onClick={onConfigure}
-                className={cx(
-                  TEXT_BUTTON,
-                  "h-11 justify-self-end px-3 font-medium",
-                )}
-              >
-                Configure
-              </button>
             </div>
           </div>
         ) : (
           <div className="flex flex-none items-center gap-1.5 border-b border-line px-7 py-3.5">
             <div className="mr-auto mono text-cell">{item.id}</div>
-            <Button onClick={onConfigure}>Configure · E</Button>
             <Button onClick={onPrev}>↑ Prev</Button>
             <Button onClick={onNext}>↓ Next</Button>
             <Button onClick={onClose}>Close · Esc</Button>
@@ -196,7 +181,7 @@ export function DetailDrawer({
             )}
           >
             <Artifact
-              {...artifactProps(item, config)}
+              {...artifactProps(item)}
               mode="orbit"
               rotating={open && spinning}
               flipped={flipped}

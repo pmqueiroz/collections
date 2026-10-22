@@ -1,9 +1,17 @@
 "use client";
 
-import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import {
+  type ChangeEvent,
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Artifact } from "../../../components/artifact/artifact";
 import { DEFAULT_FIT } from "../../../components/artifact/geometry";
 import type {
+  ArtifactKind,
   FaceSide,
   Fit,
   Geometry,
@@ -13,9 +21,7 @@ import { cx } from "../../../components/ui/cx";
 import { RangeField } from "../../../components/ui/range-field";
 import { SectionLabel } from "../../../components/ui/section-label";
 import { SegmentedControl } from "../../../components/ui/segmented-control";
-import { type CatalogItem, defaultGeometry, KIND_LABEL } from "../catalog";
-import { type ArtifactConfig, artifactProps } from "../config-store";
-import { AuthForm } from "./auth-form";
+import { KIND_LABEL, KINDS, kindGeometry } from "../catalog";
 import { downloadTemplate } from "./download-template";
 import { FaceEditor } from "./face-editor";
 import { ingestImage } from "./ingest-image";
@@ -25,53 +31,46 @@ import {
   GEOMETRY_FIELDS,
   OPTION_FIELDS,
 } from "./schema";
+import {
+  blankTexture,
+  downloadTexture,
+  parseTexture,
+  type TextureDraft,
+  textureFileName,
+} from "./texture-file";
 
-type ConfiguratorProps = {
+type TextureEditorProps = {
   compact: boolean;
-  item: CatalogItem;
-  config: ArtifactConfig;
-  stored: boolean;
-  authed: boolean;
-  onAuthed: () => void;
-  onSave: (draft: ArtifactConfig) => boolean;
-  onDelete: () => boolean;
+  draft: TextureDraft;
+  onDraft: Dispatch<SetStateAction<TextureDraft>>;
   onClose: () => void;
 };
 
 const FIT_KEY: Record<FaceSide, "fo" | "fr"> = { obv: "fo", rev: "fr" };
 
-function clone(config: ArtifactConfig): ArtifactConfig {
-  return structuredClone(config);
-}
+const KIND_OPTIONS = KINDS.map((value) => ({
+  value,
+  label: KIND_LABEL[value],
+}));
 
 const SHEET_BUTTON =
   "h-11 cursor-pointer whitespace-nowrap border-0 bg-transparent px-3 text-touch tracking-ui text-ink";
 
-export function Configurator({
+export function TextureEditor({
   compact,
-  item,
-  config,
-  stored,
-  authed,
-  onAuthed,
-  onSave,
-  onDelete,
+  draft,
+  onDraft: setDraft,
   onClose,
-}: ConfiguratorProps) {
-  const [draft, setDraft] = useState(() => clone(config));
+}: TextureEditorProps) {
   const [side, setSide] = useState<FaceSide>("obv");
   const [spinning, setSpinning] = useState(false);
   const [status, setStatus] = useState("");
-  const [askAuth, setAskAuth] = useState(false);
-  const pending = useRef<(() => void) | null>(null);
-  const live = useRef({ askAuth, onClose });
-  live.current = { askAuth, onClose };
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      if (live.current.askAuth) setAskAuth(false);
-      else live.current.onClose();
+      if (event.key === "Escape") closeRef.current();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -117,31 +116,41 @@ export function Configurator({
     ingest(file);
   };
 
-  const requireAuth = (action: () => void) => {
-    if (authed) return action();
-    pending.current = action;
-    setAskAuth(true);
+  const setKind = (kind: ArtifactKind) =>
+    setDraft((current) => ({ ...current, kind, geo: kindGeometry(kind) }));
+
+  const openTexture = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    const loaded = parseTexture(await file.text());
+    if (!loaded) return setStatus("not a texture file");
+    setDraft(loaded);
+    setStatus(`opened ${file.name}`);
   };
 
-  const save = () =>
-    requireAuth(() => {
-      if (!onSave(draft)) setStatus("storage full · not saved");
-    });
-  const remove = () =>
-    requireAuth(() => {
-      if (!onDelete()) setStatus("storage full · not saved");
-    });
-
-  const handleAuthed = () => {
-    setAskAuth(false);
-    onAuthed();
-    const action = pending.current;
-    pending.current = null;
-    action?.();
+  const download = () => {
+    downloadTexture(draft);
+    setStatus(`downloaded ${textureFileName(draft)}`);
   };
 
-  const statusText =
-    status || (stored ? "stored override" : "catalog defaults");
+  const clear = () => {
+    setDraft(blankTexture(draft.kind));
+    setStatus("cleared");
+  };
+
+  const statusText = status || "draft · download to export";
+  const openButton = (
+    <label className={cx(buttonClass("outline", "adaptive"), "box-border")}>
+      Open…
+      <input
+        type="file"
+        accept="application/json,.json"
+        onChange={openTexture}
+        className="hidden"
+      />
+    </label>
+  );
 
   return (
     <div
@@ -158,7 +167,7 @@ export function Configurator({
       <div
         role="dialog"
         aria-modal
-        aria-label={`Configure ${item.id}`}
+        aria-label="Texture editor"
         className={cx(
           "relative flex flex-col overflow-hidden border border-line bg-paper shadow-modal transition-[translate,scale,opacity] duration-450 ease-drawer",
           compact
@@ -175,31 +184,42 @@ export function Configurator({
                 onClick={onClose}
                 className={cx(SHEET_BUTTON, "justify-self-start")}
               >
-                Cancel
+                Close
               </button>
               <div className="flex flex-col items-center gap-px">
                 <div className="whitespace-nowrap text-heading font-semibold">
-                  Configure
+                  Texture editor
                 </div>
                 <div className="whitespace-nowrap mono text-meta text-muted">
-                  {item.id}
+                  {KIND_LABEL[draft.kind]}
                 </div>
               </div>
               <button
                 type="button"
-                onClick={save}
+                onClick={download}
                 className={cx(SHEET_BUTTON, "justify-self-end font-semibold")}
               >
-                Save
+                Download
               </button>
+            </div>
+            <div className="flex w-full px-4 pb-2.5">
+              <SegmentedControl
+                size="fill"
+                options={KIND_OPTIONS}
+                value={draft.kind}
+                onChange={setKind}
+              />
             </div>
           </div>
         ) : (
-          <div className="flex items-baseline gap-3 border-b border-line px-5 py-3.5">
-            <div className="mono text-cell">{item.id}</div>
-            <div className="truncate text-heading font-medium">
-              {item.title}
-            </div>
+          <div className="flex items-center gap-3 border-b border-line px-5 py-3">
+            <div className="text-heading font-medium">Texture editor</div>
+            <SegmentedControl
+              size="md"
+              options={KIND_OPTIONS}
+              value={draft.kind}
+              onChange={setKind}
+            />
             <div className="mr-auto mono text-tag uppercase tracking-label text-faint">
               Texture · Mesh
             </div>
@@ -216,7 +236,12 @@ export function Configurator({
               )}
             >
               <Artifact
-                {...artifactProps(item, draft)}
+                {...draft}
+                textured={false}
+                face=""
+                code={KIND_LABEL[draft.kind]}
+                year=""
+                origin=""
                 mode="orbit"
                 rotating={spinning}
                 flipped={side === "rev"}
@@ -270,14 +295,16 @@ export function Configurator({
                     Remove
                   </Button>
                   <Button
-                    onClick={() => downloadTemplate(item, draft.geo, side)}
+                    onClick={() =>
+                      downloadTemplate(draft.kind, draft.geo, side)
+                    }
                   >
                     Template ↓
                   </Button>
                 </div>
               </div>
               <FaceEditor
-                item={item}
+                kind={draft.kind}
                 geo={draft.geo}
                 image={image}
                 fit={fit}
@@ -306,9 +333,9 @@ export function Configurator({
             </div>
             <div className="flex flex-col">
               <SectionLabel className="pb-2">
-                Mesh · {KIND_LABEL[item.kind]}
+                Mesh · {KIND_LABEL[draft.kind]}
               </SectionLabel>
-              {GEOMETRY_FIELDS[item.kind].map((field) => (
+              {GEOMETRY_FIELDS[draft.kind].map((field) => (
                 <RangeField
                   key={field.key}
                   label={field.label}
@@ -319,7 +346,7 @@ export function Configurator({
                   onChange={(value) => setGeo(field.key, value)}
                 />
               ))}
-              {OPTION_FIELDS[item.kind].map((option) => (
+              {OPTION_FIELDS[draft.kind].map((option) => (
                 <div
                   key={option.key}
                   className="grid h-12 grid-cols-[92px_minmax(0,1fr)] items-center gap-3 border-b border-line regular:h-9"
@@ -346,72 +373,44 @@ export function Configurator({
               ))}
               <div className="flex gap-1.5 pt-3">
                 <Button
-                  onClick={() => {
-                    setDraft(clone(config));
-                    setStatus("reverted");
-                  }}
-                >
-                  Revert
-                </Button>
-                <Button
                   onClick={() =>
                     setDraft((current) => ({
                       ...current,
-                      geo: defaultGeometry(item),
+                      geo: kindGeometry(current.kind),
                     }))
                   }
                 >
-                  Catalog defaults
+                  Mesh defaults
                 </Button>
               </div>
             </div>
           </div>
         </div>
 
-        {compact ? (
-          <div className="flex min-h-12 flex-none items-center gap-2 border-t border-line px-4 pb-safe">
-            <div className="truncate whitespace-nowrap mono text-meta text-faint">
-              {statusText}
-            </div>
-            {stored && (
-              <button
-                type="button"
-                onClick={remove}
-                className="ml-auto h-11 cursor-pointer border-0 bg-transparent px-1 text-heading text-ink"
-              >
-                Delete config
-              </button>
+        <div
+          className={cx(
+            "flex flex-none items-center gap-2 border-t border-line",
+            compact ? "min-h-12 px-4 pb-safe" : "px-5 py-3",
+          )}
+        >
+          <div className="truncate whitespace-nowrap mono text-meta text-faint">
+            {statusText}
+          </div>
+          <div className="ml-auto flex gap-1.5">
+            {openButton}
+            <Button size="adaptive" onClick={clear}>
+              Clear
+            </Button>
+            {!compact && (
+              <>
+                <Button onClick={onClose}>Close</Button>
+                <Button variant="primary" onClick={download}>
+                  Download
+                </Button>
+              </>
             )}
           </div>
-        ) : (
-          <div className="flex items-center gap-2 border-t border-line px-5 py-3">
-            {askAuth ? (
-              <AuthForm onAuthed={handleAuthed} />
-            ) : (
-              <div className="mono text-meta text-faint">{statusText}</div>
-            )}
-            <div className="ml-auto flex gap-1.5">
-              {stored && <Button onClick={remove}>Delete config</Button>}
-              <Button onClick={onClose}>Cancel</Button>
-              <Button variant="primary" onClick={save}>
-                Save
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {compact && askAuth && (
-          <div className="absolute inset-0 z-5 box-border flex items-center justify-center bg-ink/20 p-6">
-            <AuthForm
-              layout="dialog"
-              onAuthed={handleAuthed}
-              onCancel={() => {
-                pending.current = null;
-                setAskAuth(false);
-              }}
-            />
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
