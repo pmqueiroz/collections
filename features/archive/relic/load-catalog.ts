@@ -34,6 +34,11 @@ export async function loadCatalog(): Promise<CatalogItem[]> {
   return items.sort((a, b) => a.id.localeCompare(b.id));
 }
 
+export async function loadCatalogItem(id: string) {
+  const items = await loadCatalog();
+  return items.find((item) => item.id === id) ?? null;
+}
+
 export async function readRelicAsset(
   id: string,
   face: FaceSide,

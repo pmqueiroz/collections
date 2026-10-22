@@ -24,10 +24,11 @@ import { ListView } from "./list-view";
 import { domainCounts, queryCatalog, type SortDirection } from "./query";
 import { TextureEditor } from "./texture-editor/texture-editor";
 import { blankTexture } from "./texture-editor/texture-file";
-import { useRelicLink } from "./use-relic-link";
+import { useRelicHistory } from "./use-relic-history";
 
 type ArchiveIndexProps = {
   catalog: CatalogItem[];
+  relicId?: string;
   defaultView?: View;
   rowDensity?: "compact" | "regular";
   orbitRpm?: number;
@@ -39,6 +40,7 @@ const PREVIEW_HEIGHT = 310;
 
 export function ArchiveIndex({
   catalog,
+  relicId,
   defaultView = "list",
   rowDensity = "compact",
   orbitRpm = 2,
@@ -50,7 +52,7 @@ export function ArchiveIndex({
   const [query, setQuery] = useState("");
   const [view, setView] = useState<View>(defaultView);
   const [preview, setPreview] = useState<PreviewPosition | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(relicId ?? null);
   const [open, setOpen] = useState(false);
   const [spinning, setSpinning] = useState(true);
   const [flipped, setFlipped] = useState(false);
@@ -94,7 +96,7 @@ export function ArchiveIndex({
     }, dwell);
   };
 
-  const openItem = (id: string) => {
+  const showItem = (id: string) => {
     clearTimeout(timer.current);
     setPreview(null);
     setSelectedId(id);
@@ -105,12 +107,33 @@ export function ArchiveIndex({
     setResetKey((key) => key + 1);
   };
 
+  const history = useRelicHistory((id) => {
+    if (id && catalog.some((item) => item.id === id)) showItem(id);
+    else setOpen(false);
+  });
+
+  const openItem = (id: string) => {
+    if (open) history.show(id);
+    else history.open(id);
+    showItem(id);
+  };
+
+  const closeDetail = () => {
+    setOpen(false);
+    history.close();
+  };
+
+  useEffect(() => {
+    if (relicId) setOpen(true);
+  }, [relicId]);
+
   const step = (offset: number) => {
     if (!items.length) return;
     const index = items.findIndex((item) => item.id === selected.id);
     const next =
       items[((index < 0 ? 0 : index + offset) + items.length) % items.length];
     setSelectedId(next.id);
+    history.show(next.id);
     setFlipped(false);
     setResetKey((key) => key + 1);
   };
@@ -143,21 +166,15 @@ export function ArchiveIndex({
     setEditing(true);
   };
 
-  useRelicLink(open ? selected.id : null, (id) => {
-    if (!catalog.some((item) => item.id === id)) return false;
-    openItem(id);
-    return true;
-  });
-
-  const keys = useRef({ open, editing, step });
-  keys.current = { open, editing, step };
+  const keys = useRef({ open, editing, step, closeDetail });
+  keys.current = { open, editing, step, closeDetail };
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const state = keys.current;
       if (!state.open || state.editing) return;
       const target = event.target as HTMLElement | null;
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") state.closeDetail();
       else if (target?.tagName === "INPUT") return;
       else if (event.key === "ArrowDown" || event.key === "ArrowRight") {
         event.preventDefault();
@@ -281,7 +298,7 @@ export function ArchiveIndex({
         backLabel={domainTitle(domain)}
         position={`${selectedIndex < 0 ? "–" : selectedIndex + 1} / ${items.length}`}
         item={selected}
-        onClose={() => setOpen(false)}
+        onClose={closeDetail}
         onPrev={() => step(-1)}
         onNext={() => step(1)}
         spinning={spinning}
