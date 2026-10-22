@@ -24,6 +24,7 @@ import { ListView } from "./list-view";
 import { domainCounts, queryCatalog, type SortDirection } from "./query";
 import { TextureEditor } from "./texture-editor/texture-editor";
 import { blankTexture } from "./texture-editor/texture-file";
+import { useRelicLink } from "./use-relic-link";
 
 type ArchiveIndexProps = {
   catalog: CatalogItem[];
@@ -141,6 +142,12 @@ export function ArchiveIndex({
     unhover();
     setEditing(true);
   };
+
+  useRelicLink(open ? selected.id : null, (id) => {
+    if (!catalog.some((item) => item.id === id)) return false;
+    openItem(id);
+    return true;
+  });
 
   const keys = useRef({ open, editing, step });
   keys.current = { open, editing, step };
