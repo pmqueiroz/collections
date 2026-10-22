@@ -78,6 +78,8 @@ export const KIND_LABEL: Record<ArtifactKind, string> = {
   stamp: "Stamp",
 };
 
+export const KINDS = Object.keys(KIND_LABEL) as ArtifactKind[];
+
 export const DOMAINS: { value: Domain; label: string }[] = [
   { value: "all", label: "All" },
   { value: "coin", label: "Coins" },
@@ -668,34 +670,50 @@ function parseSize(size: string) {
   return size.split("×").map((part) => Number.parseFloat(part));
 }
 
+const KIND_GEOMETRY: Record<ArtifactKind, Geometry> = {
+  coin: { dia: 24, thk: 1.8, bevel: 1, edge: "reeded" },
+  note: { w: 150, h: 76, curve: 1.5 },
+  card: {
+    w: 85.6,
+    h: 53.98,
+    r: 3.18,
+    thk: 0.76,
+    chipX: 9.4,
+    chipY: 19.7,
+    chip: true,
+  },
+  stamp: { w: 20, h: 24, perf: 14, hole: 0.55, margin: 1.6 },
+};
+
+export function kindGeometry(kind: ArtifactKind): Geometry {
+  return { ...KIND_GEOMETRY[kind] };
+}
+
 export function defaultGeometry(item: CatalogItem): Geometry {
+  const base = kindGeometry(item.kind);
   switch (item.kind) {
     case "coin": {
       const edge: EdgeStyle = /reed/i.test(item.edge) ? "reeded" : "plain";
-      return { dia: +item.dia || 24, thk: +item.thk || 1.8, bevel: 1, edge };
+      return {
+        ...base,
+        dia: +item.dia || base.dia,
+        thk: +item.thk || base.thk,
+        edge,
+      };
     }
     case "note": {
       const [w, h] = parseSize(item.size);
-      return { w: w || 150, h: h || 76, curve: 1.5 };
+      return { ...base, w: w || base.w, h: h || base.h };
     }
     case "card":
-      return {
-        w: 85.6,
-        h: 53.98,
-        r: 3.18,
-        thk: 0.76,
-        chipX: 9.4,
-        chipY: 19.7,
-        chip: true,
-      };
+      return base;
     case "stamp": {
       const [w, h] = parseSize(item.size);
       return {
-        w: w || 20,
-        h: h || 24,
-        perf: Number.parseFloat(item.perf) || 14,
-        hole: 0.55,
-        margin: 1.6,
+        ...base,
+        w: w || base.w,
+        h: h || base.h,
+        perf: Number.parseFloat(item.perf) || base.perf,
       };
     }
   }
