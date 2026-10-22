@@ -79,4 +79,4 @@ re-adds. It points agents at the version-matched docs in
   no database or API.
 - Artifact overrides persist to `localStorage` only (see
   [archive.md](./archive.md#persistence-and-auth)).
-- No tests, no CI workflow, no deployment config yet.
+- No tests yet. Deployment: see [ci-cd.md](./ci-cd.md).
