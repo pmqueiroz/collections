@@ -1,6 +1,5 @@
-import { memo, useCallback, useRef } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Artifact } from "../../components/artifact/artifact";
-import type { ArtifactMode } from "../../components/artifact/types";
 import { useInView } from "../../components/ui/use-in-view";
 import { ArtifactCaption } from "./artifact-caption";
 import { artifactProps } from "./artifact-config";
@@ -8,13 +7,14 @@ import type { CatalogItem } from "./catalog";
 
 type GridViewProps = {
   items: CatalogItem[];
-  mode: ArtifactMode;
+  tilt: boolean;
   onOpen: (id: string) => void;
 };
 
 const MOUNT_MARGIN = "600px 0px";
+const SETTLE_MS = 700;
 
-export function GridView({ items, mode, onOpen }: GridViewProps) {
+export function GridView({ items, tilt, onOpen }: GridViewProps) {
   const openRef = useRef(onOpen);
   openRef.current = onOpen;
   const open = useCallback((id: string) => openRef.current(id), []);
@@ -22,7 +22,7 @@ export function GridView({ items, mode, onOpen }: GridViewProps) {
   return (
     <main className="grid grid-cols-2 gap-2 p-3 pb-[calc(env(safe-area-inset-bottom)+72px)] regular:grid-cols-[repeat(auto-fill,minmax(232px,1fr))] regular:gap-3 regular:px-7 regular:pb-12 regular:pt-6">
       {items.map((item) => (
-        <GridCard key={item.id} item={item} mode={mode} onOpen={open} />
+        <GridCard key={item.id} item={item} tilt={tilt} onOpen={open} />
       ))}
     </main>
   );
@@ -30,24 +30,44 @@ export function GridView({ items, mode, onOpen }: GridViewProps) {
 
 const GridCard = memo(function GridCard({
   item,
-  mode,
+  tilt,
   onOpen,
 }: {
   item: CatalogItem;
-  mode: ArtifactMode;
+  tilt: boolean;
   onOpen: (id: string) => void;
 }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const inView = useInView(stageRef, MOUNT_MARGIN);
+  const [active, setActive] = useState(false);
+  const settle = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => () => clearTimeout(settle.current), []);
+
+  const onEnter = () => {
+    clearTimeout(settle.current);
+    if (tilt) setActive(true);
+  };
+  const onLeave = () => {
+    clearTimeout(settle.current);
+    settle.current = setTimeout(() => setActive(false), SETTLE_MS);
+  };
 
   return (
     <button
       type="button"
       onClick={() => onOpen(item.id)}
+      onPointerEnter={onEnter}
+      onPointerLeave={onLeave}
       className="flex min-w-0 cursor-pointer flex-col rounded-xs bg-surface text-left transition-colors duration-200 hover:bg-raised active:bg-raised"
     >
       <div ref={stageRef} className="relative aspect-[1/0.84] w-full">
-        {inView && <Artifact {...artifactProps(item)} mode={mode} />}
+        {inView && (
+          <Artifact
+            {...artifactProps(item)}
+            mode={tilt && active ? "tilt" : "flat"}
+          />
+        )}
       </div>
       <ArtifactCaption item={item} truncate fluid />
     </button>

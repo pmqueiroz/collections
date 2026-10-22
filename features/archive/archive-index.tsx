@@ -273,7 +273,7 @@ export function ArchiveIndex({
         ) : (
           <GridView
             items={items}
-            mode={compact ? "static" : "tilt"}
+            tilt={!compact && fineHover}
             onOpen={openItem}
           />
         )}
