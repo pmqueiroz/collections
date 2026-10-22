@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { clamp, perforationGrid, perforationMask, round2 } from "./geometry";
-import type { SurfaceProps } from "./surface-props";
+import type { MeshProps } from "./surface-props";
 import {
   CLAY,
   CLAY_LINE,
@@ -22,7 +22,8 @@ export function Stamp({
   fr,
   face,
   origin,
-}: SurfaceProps) {
+  flat,
+}: MeshProps) {
   const widthMm = geo.w || 20;
   const heightMm = geo.h || 24;
   const scale = STAMP_EXTENT / Math.max(widthMm, heightMm);
@@ -107,29 +108,32 @@ export function Stamp({
           </>
         )}
       </div>
-      <div
-        className="absolute overflow-hidden backface-hidden"
-        style={{ ...sheet, transform: "rotateY(180deg) translateZ(0.4px)" }}
-      >
-        {rev ? (
-          <FaceImage src={rev} fit={fr} backing="#E3E2DC" />
-        ) : textured ? (
-          <>
-            <div
-              className="absolute inset-0"
-              style={{
-                background: "linear-gradient(160deg, #E6E5E0 0%, #DCDBD5 100%)",
-              }}
-            />
-            <MonoText className="absolute bottom-4 left-0 right-0 text-center text-[6.5px] tracking-[0.14em]">
-              REV · GUM
-            </MonoText>
-          </>
-        ) : (
-          <ClayGrid cell={[22, 24]} />
-        )}
-        <Sheen strength={0.6} spread="55%" />
-      </div>
+      {!flat && (
+        <div
+          className="absolute overflow-hidden backface-hidden"
+          style={{ ...sheet, transform: "rotateY(180deg) translateZ(0.4px)" }}
+        >
+          {rev ? (
+            <FaceImage src={rev} fit={fr} backing="#E3E2DC" />
+          ) : textured ? (
+            <>
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(160deg, #E6E5E0 0%, #DCDBD5 100%)",
+                }}
+              />
+              <MonoText className="absolute bottom-4 left-0 right-0 text-center text-[6.5px] tracking-[0.14em]">
+                REV · GUM
+              </MonoText>
+            </>
+          ) : (
+            <ClayGrid cell={[22, 24]} />
+          )}
+          <Sheen strength={0.6} spread="55%" />
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { clamp, round2 } from "./geometry";
-import type { SurfaceProps } from "./surface-props";
+import type { MeshProps } from "./surface-props";
 import {
   CLAY_LINE,
   ClayGrid,
@@ -79,7 +79,8 @@ export function Card({
   fr,
   face,
   code,
-}: SurfaceProps) {
+  flat,
+}: MeshProps) {
   const scale = CARD_WIDTH / (geo.w || 85.6);
   const height = round2(clamp((geo.h || 53.98) * scale, 40, 220));
   const thickness = clamp((geo.thk ?? 0.76) * scale, 0.6, 12);
@@ -110,17 +111,18 @@ export function Card({
 
   return (
     <div className="absolute inset-0 transform-3d">
-      {EDGE_LAYERS.map((position, index) => (
-        <div
-          key={position}
-          className="absolute"
-          style={{
-            ...slab,
-            background: index % 2 ? "#D3D2CC" : "#CFCEC8",
-            transform: `translateZ(${round2(position * thickness * 0.9)}px)`,
-          }}
-        />
-      ))}
+      {!flat &&
+        EDGE_LAYERS.map((position, index) => (
+          <div
+            key={position}
+            className="absolute"
+            style={{
+              ...slab,
+              background: index % 2 ? "#D3D2CC" : "#CFCEC8",
+              transform: `translateZ(${round2(position * thickness * 0.9)}px)`,
+            }}
+          />
+        ))}
       <div
         className="absolute overflow-hidden backface-hidden"
         style={{ ...slab, transform: `translateZ(${half}px)` }}
@@ -163,37 +165,43 @@ export function Card({
         {chip && !lit && <ClayChip style={chipStyle} />}
         <Sheen strength={0.5} />
       </div>
-      <div
-        className="absolute overflow-hidden backface-hidden"
-        style={{ ...slab, transform: `rotateY(180deg) translateZ(${half}px)` }}
-      >
-        {rev ? (
-          <FaceImage src={rev} fit={fr} backing="#D3D2CC" />
-        ) : textured ? (
-          <>
-            <div
-              className="absolute inset-0"
-              style={{
-                background: "linear-gradient(200deg, #E2E1DB 0%, #D4D3CD 100%)",
-              }}
-            />
-            <div className="absolute left-3.5 right-3.5 top-3.5 flex flex-col gap-[5px]">
-              <div className="h-px bg-ink/14" />
-              <div className="h-px w-[70%] bg-ink/14" />
-              <div className="h-px w-[45%] bg-ink/14" />
-            </div>
-            <MonoText className="absolute bottom-3 left-3.5 text-[7px] tracking-[0.14em]">
-              REV · SCAN · {code}
-            </MonoText>
-          </>
-        ) : (
-          <>
-            <ClayGrid cell={[20, 21]} />
-            {clayOutline}
-          </>
-        )}
-        <Sheen strength={0.5} />
-      </div>
+      {!flat && (
+        <div
+          className="absolute overflow-hidden backface-hidden"
+          style={{
+            ...slab,
+            transform: `rotateY(180deg) translateZ(${half}px)`,
+          }}
+        >
+          {rev ? (
+            <FaceImage src={rev} fit={fr} backing="#D3D2CC" />
+          ) : textured ? (
+            <>
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(200deg, #E2E1DB 0%, #D4D3CD 100%)",
+                }}
+              />
+              <div className="absolute left-3.5 right-3.5 top-3.5 flex flex-col gap-[5px]">
+                <div className="h-px bg-ink/14" />
+                <div className="h-px w-[70%] bg-ink/14" />
+                <div className="h-px w-[45%] bg-ink/14" />
+              </div>
+              <MonoText className="absolute bottom-3 left-3.5 text-[7px] tracking-[0.14em]">
+                REV · SCAN · {code}
+              </MonoText>
+            </>
+          ) : (
+            <>
+              <ClayGrid cell={[20, 21]} />
+              {clayOutline}
+            </>
+          )}
+          <Sheen strength={0.5} />
+        </div>
+      )}
     </div>
   );
 }

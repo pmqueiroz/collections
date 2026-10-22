@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { clamp, round2 } from "./geometry";
-import type { SurfaceProps } from "./surface-props";
+import type { MeshProps, SurfaceProps } from "./surface-props";
 import { ClayGrid, ClayWell, FaceImage, MonoText, Sheen } from "./surfaces";
 
 const STRIP_COUNT = 11;
@@ -161,12 +161,24 @@ function StripWindow({
   );
 }
 
-export function Note(props: SurfaceProps) {
+export function Note({ flat, ...props }: MeshProps) {
   const { geo } = props;
   const scale = NOTE_WIDTH / (geo.w || 150);
   const height = round2(clamp((geo.h || 76) * scale, 40, 220));
   const curve = (geo.curve ?? 1.5) * scale;
   const top = round2(120 - height / 2);
+
+  if (flat)
+    return (
+      <div
+        className="absolute"
+        style={{ left: 10, top, width: NOTE_WIDTH, height }}
+      >
+        <StripWindow offset={0} height={height} shade={0} flipped={false}>
+          <FrontFace {...props} />
+        </StripWindow>
+      </div>
+    );
 
   return (
     <div className="absolute inset-0 transform-3d">

@@ -1,5 +1,5 @@
 import { clamp, round2 } from "./geometry";
-import type { SurfaceProps } from "./surface-props";
+import type { MeshProps } from "./surface-props";
 import {
   CLAY,
   CLAY_LINE,
@@ -76,7 +76,8 @@ export function Coin({
   face,
   code,
   year,
-}: SurfaceProps) {
+  flat,
+}: MeshProps) {
   const scale = SCALE_BASE / (geo.dia || 24);
   const thickness = round2(clamp((geo.thk || 1.8) * scale, 2, 40));
   const bevel = round2(clamp((geo.bevel ?? 1) * scale, 0, 40));
@@ -100,27 +101,28 @@ export function Coin({
 
   return (
     <div className="absolute inset-0 transform-3d">
-      {RIM.map((segment) => (
-        <div
-          key={segment.angle}
-          className="absolute box-border"
-          style={{
-            left: 112.7,
-            top: round2(120 - thickness / 2),
-            width: 14.6,
-            height: thickness,
-            transform: `rotateZ(${segment.angle}deg) translateY(-90px) rotateX(90deg)`,
-            background: rimBackground,
-            borderTop: rimLine,
-            borderBottom: rimLine,
-          }}
-        >
+      {!flat &&
+        RIM.map((segment) => (
           <div
-            className="absolute inset-0 bg-ink"
-            style={{ opacity: segment.shade }}
-          />
-        </div>
-      ))}
+            key={segment.angle}
+            className="absolute box-border"
+            style={{
+              left: 112.7,
+              top: round2(120 - thickness / 2),
+              width: 14.6,
+              height: thickness,
+              transform: `rotateZ(${segment.angle}deg) translateY(-90px) rotateX(90deg)`,
+              background: rimBackground,
+              borderTop: rimLine,
+              borderBottom: rimLine,
+            }}
+          >
+            <div
+              className="absolute inset-0 bg-ink"
+              style={{ opacity: segment.shade }}
+            />
+          </div>
+        ))}
       <div
         className="absolute overflow-hidden rounded-full backface-hidden"
         style={{ ...faceBox, transform: `translateZ(${half}px)` }}
@@ -168,50 +170,52 @@ export function Coin({
           </>
         )}
       </div>
-      <div
-        className="absolute overflow-hidden rounded-full backface-hidden"
-        style={{
-          ...faceBox,
-          transform: `rotateY(180deg) translateZ(${half}px)`,
-        }}
-      >
-        {rev ? (
-          <>
-            <FaceImage src={rev} fit={fr} backing="#CBCAC4" />
-            <ImageBevel bevel={bevel} />
-            <Sheen strength={0.45} />
-          </>
-        ) : textured ? (
-          <>
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(circle at 62% 32%, #DBDAD4 0%, #C8C7C1 55%, #B8B7B1 100%)",
-              }}
-            />
-            <div
-              className="absolute inset-0"
-              style={{ background: ENGRAVING }}
-            />
-            <ScanBevel bevel={bevel} rim="#D0CFC9" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
-              <MonoText className="text-[8px] tracking-[0.14em]">
-                REV · SCAN
-              </MonoText>
-              <MonoText
-                className="text-[30px] font-medium tracking-[-0.02em]"
-                style={{ textShadow: "0 1px 0 rgba(245,244,240,0.6)" }}
-              >
-                {year}
-              </MonoText>
-            </div>
-            <Sheen strength={0.55} />
-          </>
-        ) : (
-          <ClayFace bevel={bevel} />
-        )}
-      </div>
+      {!flat && (
+        <div
+          className="absolute overflow-hidden rounded-full backface-hidden"
+          style={{
+            ...faceBox,
+            transform: `rotateY(180deg) translateZ(${half}px)`,
+          }}
+        >
+          {rev ? (
+            <>
+              <FaceImage src={rev} fit={fr} backing="#CBCAC4" />
+              <ImageBevel bevel={bevel} />
+              <Sheen strength={0.45} />
+            </>
+          ) : textured ? (
+            <>
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(circle at 62% 32%, #DBDAD4 0%, #C8C7C1 55%, #B8B7B1 100%)",
+                }}
+              />
+              <div
+                className="absolute inset-0"
+                style={{ background: ENGRAVING }}
+              />
+              <ScanBevel bevel={bevel} rim="#D0CFC9" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
+                <MonoText className="text-[8px] tracking-[0.14em]">
+                  REV · SCAN
+                </MonoText>
+                <MonoText
+                  className="text-[30px] font-medium tracking-[-0.02em]"
+                  style={{ textShadow: "0 1px 0 rgba(245,244,240,0.6)" }}
+                >
+                  {year}
+                </MonoText>
+              </div>
+              <Sheen strength={0.55} />
+            </>
+          ) : (
+            <ClayFace bevel={bevel} />
+          )}
+        </div>
+      )}
     </div>
   );
 }

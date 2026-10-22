@@ -1,6 +1,6 @@
 export type ArtifactKind = "coin" | "note" | "card" | "stamp";
 
-export type ArtifactMode = "static" | "tilt" | "orbit";
+export type ArtifactMode = "flat" | "static" | "tilt" | "orbit";
 
 export type EdgeStyle = "reeded" | "plain";
 

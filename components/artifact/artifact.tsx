@@ -365,6 +365,7 @@ export function Artifact({
           code={code}
           year={year}
           origin={origin}
+          flat={mode === "flat"}
         />
       </div>
     </div>

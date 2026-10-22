@@ -12,3 +12,5 @@ export type SurfaceProps = {
   year: string;
   origin: string;
 };
+
+export type MeshProps = SurfaceProps & { flat: boolean };
