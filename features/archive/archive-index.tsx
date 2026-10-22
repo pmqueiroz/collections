@@ -8,7 +8,12 @@ import {
   FINE_HOVER_QUERY,
   useMediaQuery,
 } from "../../components/ui/use-media-query";
-import { CATALOG, type Domain, domainTitle, type SortKey } from "./catalog";
+import {
+  type CatalogItem,
+  type Domain,
+  domainTitle,
+  type SortKey,
+} from "./catalog";
 import { CompactHeader } from "./compact-header";
 import { DetailDrawer, ZOOM_MAX, ZOOM_MIN } from "./detail-drawer";
 import { DomainTabBar } from "./domain-tab-bar";
@@ -21,6 +26,7 @@ import { TextureEditor } from "./texture-editor/texture-editor";
 import { blankTexture } from "./texture-editor/texture-file";
 
 type ArchiveIndexProps = {
+  catalog: CatalogItem[];
   defaultView?: View;
   rowDensity?: "compact" | "regular";
   orbitRpm?: number;
@@ -29,9 +35,9 @@ type ArchiveIndexProps = {
 
 const PREVIEW_WIDTH = 290;
 const PREVIEW_HEIGHT = 310;
-const COUNTS = domainCounts();
 
 export function ArchiveIndex({
+  catalog,
   defaultView = "list",
   rowDensity = "compact",
   orbitRpm = 2,
@@ -55,14 +61,15 @@ export function ArchiveIndex({
   const compact = useMediaQuery(COMPACT_QUERY);
   const fineHover = useMediaQuery(FINE_HOVER_QUERY, true);
 
+  const counts = useMemo(() => domainCounts(catalog), [catalog]);
   const items = useMemo(
-    () => queryCatalog(domain, sort, direction, query),
-    [domain, sort, direction, query],
+    () => queryCatalog(catalog, domain, sort, direction, query),
+    [catalog, domain, sort, direction, query],
   );
   const selected =
-    CATALOG.find((item) => item.id === selectedId) ?? items[0] ?? CATALOG[0];
+    catalog.find((item) => item.id === selectedId) ?? items[0] ?? catalog[0];
   const previewItem = preview
-    ? CATALOG.find((item) => item.id === preview.id)
+    ? catalog.find((item) => item.id === preview.id)
     : undefined;
 
   const unhover = () => {
@@ -203,9 +210,9 @@ export function ArchiveIndex({
         />
         <Header
           shown={items.length}
-          total={CATALOG.length}
+          total={catalog.length}
           domain={domain}
-          counts={COUNTS}
+          counts={counts}
           onDomain={onDomain}
           sort={sort}
           direction={direction}

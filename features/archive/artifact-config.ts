@@ -1,13 +1,16 @@
 import { DEFAULT_FIT } from "../../components/artifact/geometry";
-import type { Fit, Geometry } from "../../components/artifact/types";
-import { type CatalogItem, defaultGeometry } from "./catalog";
+import type { FaceSide, Fit, Geometry } from "../../components/artifact/types";
+import type { CatalogItem } from "./catalog";
 
-export type ArtifactConfig = {
+export type ArtifactModel = {
   geo: Geometry;
-  obv: string;
-  rev: string;
   fo: Fit;
   fr: Fit;
+};
+
+export type ArtifactConfig = ArtifactModel & {
+  obv: string;
+  rev: string;
 };
 
 export function blankConfig(geo: Geometry): ArtifactConfig {
@@ -20,9 +23,21 @@ export function blankConfig(geo: Geometry): ArtifactConfig {
   };
 }
 
+export function relicAssetUrl(id: string, face: FaceSide) {
+  return `/relics/${encodeURIComponent(id)}/${face}`;
+}
+
+function itemConfig(item: CatalogItem): ArtifactConfig {
+  return {
+    ...item.model,
+    obv: item.faces.obv ? relicAssetUrl(item.id, "obv") : "",
+    rev: item.faces.rev ? relicAssetUrl(item.id, "rev") : "",
+  };
+}
+
 export function artifactProps(
   item: CatalogItem,
-  config: ArtifactConfig = blankConfig(defaultGeometry(item)),
+  config: ArtifactConfig = itemConfig(item),
 ) {
   return {
     kind: item.kind,

@@ -1,5 +1,4 @@
 import {
-  CATALOG,
   type CatalogItem,
   CONDITION_RANK,
   type Domain,
@@ -40,6 +39,7 @@ function searchText(item: CatalogItem) {
 }
 
 export function queryCatalog(
+  catalog: CatalogItem[],
   domain: Domain,
   sort: SortKey,
   direction: SortDirection,
@@ -47,21 +47,23 @@ export function queryCatalog(
 ) {
   const needle = query.trim().toLowerCase();
   const compare = COMPARE[sort];
-  return CATALOG.filter(
-    (item) =>
-      (domain === "all" || item.kind === domain) &&
-      (!needle || searchText(item).includes(needle)),
-  ).sort((a, b) => (compare(a, b) || a.id.localeCompare(b.id)) * direction);
+  return catalog
+    .filter(
+      (item) =>
+        (domain === "all" || item.kind === domain) &&
+        (!needle || searchText(item).includes(needle)),
+    )
+    .sort((a, b) => (compare(a, b) || a.id.localeCompare(b.id)) * direction);
 }
 
-export function domainCounts() {
+export function domainCounts(catalog: CatalogItem[]) {
   const counts: Record<Domain, number> = {
-    all: CATALOG.length,
+    all: catalog.length,
     coin: 0,
     note: 0,
     card: 0,
     stamp: 0,
   };
-  for (const item of CATALOG) counts[item.kind] += 1;
+  for (const item of catalog) counts[item.kind] += 1;
   return counts;
 }
