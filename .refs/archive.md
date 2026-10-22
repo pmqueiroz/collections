@@ -52,7 +52,8 @@ rewritten as React + Tailwind.
 - **Search** matches id, title, origin, ISO, year, kind label, condition and
   the kind's currency/mint/issuer/series fields, case-insensitive.
 - **Sort**: clicking the active sort flips direction; a new sort resets to
-  ascending. Ties always fall back to catalog id. `origin` sorts by ISO code;
+  ascending. Ties always fall back to catalog id. Items with an unknown
+  year sort after every dated item in both directions. `origin` sorts by ISO code;
   `cond` sorts by `CONDITION_RANK` (best grade first).
 - **Amount**: when an item's `amount` is above 1, both list layouts show
   `<n>x` right before the thumbnail (`amountLabel`); the slot is always

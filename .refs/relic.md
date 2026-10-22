@@ -76,6 +76,9 @@ either is a decoder change; for zstd the spec must first say whether
 ```
 
 - **Universal** fields sit at the top level (`id` … `face`).
+- **`year`** is optional: an integer, or missing/`null` when the year is
+  unknown (`item.year` is `null`; display goes through `itemYear`, which
+  shows `—`). Anything else fails with `invalid year`.
 - **`amount`** is how many physical copies of this exact entry (same item,
   same year) the collection holds. Optional positive integer, defaults to
   `1`; anything else fails with `invalid amount`. Duplicates of one year
@@ -121,16 +124,31 @@ manifest without `assets` plus the decoded asset bytes.
 
 ## Adding or changing an entry
 
-The original banknote, phonecard and stamp entries were generated once from
-the old static `CATALOG` array by a throwaway script (not committed). The
-coins (`NUM-C-*`) were imported once from the owner's Google Sheet (read via
-`rclone`, columns currency / amount / minting years / ISO / country), again
-by a throwaway script: one relic per coin + country + year, duplicate years
-folded into `amount`, ids in sheet order then year. The sheet only had those
-columns, so every coin has `cond: "VF"`, `tex: false`, the default coin
-model, and `"—"` for `mint`, `metal`, `dia`, `thk`, `wt`, `edge`. The sheet's
-`UAE` was corrected to ISO `ARE`. Those placeholders are meant to be
-corrected per entry.
+The phonecard and stamp entries were generated once from the old static
+`CATALOG` array by a throwaway script (not committed).
+
+Coins (`NUM-C-*`) and banknotes (`NUM-B-*`) were imported once from the
+owner's Google Sheet, read with `rclone` (export as xlsx to get every tab),
+again by throwaway scripts. One relic per item + country + year; repeated
+years fold into `amount`. Tabs:
+
+- **WW Currency** → `NUM-C-0001`…`0175` (world coins, sheet order then year).
+- **WW Bills** → `NUM-B-0001`…`0021` (world banknotes). `Pesos` rows take
+  their code from the country (URY → UYU, ARG → ARS); a `?` printing year
+  becomes an unknown year.
+- **Nacionais** → `NUM-C-0176`…`0216` (Brazilian coins, origin `BRA`). The
+  Olympic and commemorative lists are R$1 coins where `-` means not owned;
+  their years were not in the sheet and were filled from the release years
+  (Olympic series 2014–2016, commemoratives by anniversary), so they need
+  checking against the coins. The "Antigas" list has one row per coin; `cur`
+  is the era's ISO 4217 code (`BRZ` before 1967, `BRB` 1967–1989 cruzeiro,
+  `BRC` cruzado, `BRE` 1990–1993, `BRL` from 1994) and `Réis` for réis,
+  which has none. Centavo denominations are stored in major units (`0.20`).
+
+The sheet only had denomination, amount, years and country, so every
+imported entry has `cond: "VF"`, `tex: false`, the default model for its
+kind, and `"—"` for every other spec field. The sheet's `UAE` was corrected
+to ISO `ARE`. Those placeholders are meant to be corrected per entry.
 
 There is no pack CLI: edit an
 entry by opening its relic in the texture editor and downloading it back over
