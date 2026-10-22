@@ -61,6 +61,15 @@ rewritten as React + Tailwind.
   `columns.ts`).
 - **List columns** change per domain tab. Column headers with a sort key are
   buttons and show the arrow.
+- **Grid mounting**: each grid card mounts its `Artifact` only while its
+  stage is within 600px (vertically) of the viewport (`useInView` in
+  `components/ui/use-in-view.ts`); off-screen cards keep their box and
+  caption but no rig. A full CSS-3D rig is hundreds of preserve-3d nodes
+  (a note is 11 strips x 2 face windows, a coin 40 rim segments), so
+  mounting all of them made the grid ~20k nodes and switching to it took
+  ~600ms. Cards are `memo`ed and `GridView` passes them a stable `onOpen`
+  (latest handler kept in a ref), so `ArchiveIndex` state changes such as
+  drawer spin/zoom/flip or hover do not re-render every rig.
 - **Hover preview** appears after `dwell` ms (default 300) and is suppressed
   while the drawer is open. Any scroll (capture phase) hides it. It flips to
   the cursor's left when it would overflow the viewport.

@@ -40,7 +40,8 @@ Code is the truth. This file explains the *why* behind the shape it takes.
   non-button elements such as a file `<label>`; `size="adaptive"` is 40px
   on phones, 28px from `regular:`), `TabButton`, `SegmentedControl`
   (`touch` and `fill` sizes for phone controls, `disabled`), `SectionLabel`,
-  `RangeField` (taller rows below `regular:`), `useMediaQuery`, and `cx`.
+  `RangeField` (taller rows below `regular:`), `useMediaQuery`, `useInView`
+  (IntersectionObserver visibility of a ref, with `rootMargin`), and `cx`.
 - `components/artifact/` — the reusable 3D `Artifact` viewer.
 - `features/<name>/` — one directory per feature. Currently
   `features/archive/`, see [archive.md](./archive.md).
