@@ -2,23 +2,36 @@ import type { ComponentProps } from "react";
 import { cx } from "./cx";
 
 export type ButtonVariant = "outline" | "primary";
+export type ButtonSize = "sm" | "adaptive";
 
 const BASE =
-  "inline-flex h-7 cursor-pointer items-center whitespace-nowrap rounded-xs border px-2.5 mono text-control";
+  "inline-flex cursor-pointer items-center whitespace-nowrap rounded-xs border px-2.5 mono text-control";
+
+const SIZE: Record<ButtonSize, string> = {
+  sm: "h-7",
+  adaptive: "h-10 regular:h-7",
+};
 
 const VARIANT: Record<ButtonVariant, string> = {
   outline: "border-line bg-paper text-ink hover:bg-raised",
   primary: "border-ink bg-ink text-paper hover:bg-ink-hover",
 };
 
-export function buttonClass(variant: ButtonVariant = "outline") {
-  return cx(BASE, VARIANT[variant]);
+export function buttonClass(
+  variant: ButtonVariant = "outline",
+  size: ButtonSize = "sm",
+) {
+  return cx(BASE, SIZE[size], VARIANT[variant]);
 }
 
-type ButtonProps = ComponentProps<"button"> & { variant?: ButtonVariant };
+type ButtonProps = ComponentProps<"button"> & {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+};
 
 export function Button({
   variant = "outline",
+  size = "sm",
   className,
   type = "button",
   ...props
@@ -26,7 +39,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={cx(buttonClass(variant), className)}
+      className={cx(buttonClass(variant, size), className)}
       {...props}
     />
   );

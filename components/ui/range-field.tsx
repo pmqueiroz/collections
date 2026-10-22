@@ -22,7 +22,7 @@ export function RangeField({
     if (!Number.isNaN(next)) onChange(next);
   };
   return (
-    <div className="grid h-9 grid-cols-[92px_minmax(0,1fr)_68px] items-center gap-3 border-b border-line">
+    <div className="grid h-12 grid-cols-[92px_minmax(0,1fr)_68px] items-center gap-3 border-b border-line regular:h-9">
       <div className="whitespace-nowrap mono text-tag uppercase text-muted">
         {label}
       </div>
@@ -44,7 +44,7 @@ export function RangeField({
         step={step}
         value={value}
         onChange={handle}
-        className="box-border h-6 w-full rounded-xs border border-line bg-surface px-1.5 text-right mono text-xs text-ink outline-none"
+        className="box-border h-8 w-full rounded-xs border border-line bg-surface px-1.5 text-right mono text-touch text-ink outline-none regular:h-6 regular:text-xs"
       />
     </div>
   );

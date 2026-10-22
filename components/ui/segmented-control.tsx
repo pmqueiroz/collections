@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { cx } from "./cx";
 
-export type SegmentedSize = "sm" | "md" | "lg";
+export type SegmentedSize = "sm" | "md" | "lg" | "touch" | "fill";
 
 type Option<T> = { value: T; label: ReactNode };
 
@@ -26,6 +26,14 @@ const SIZE: Record<SegmentedSize, { frame: string; item: string }> = {
   lg: {
     frame: "rounded-[3px]",
     item: "h-[26px] rounded-xs px-[11px] text-row tracking-ui",
+  },
+  touch: {
+    frame: "rounded-[3px]",
+    item: "h-8 rounded-xs px-3 text-sm tracking-ui",
+  },
+  fill: {
+    frame: "min-w-0 flex-1 rounded-xs",
+    item: "h-9 flex-1 justify-center rounded-[1px] p-0 mono text-xs",
   },
 };
 
