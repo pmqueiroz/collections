@@ -1,26 +1,79 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans:
+    var(--font-geist-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --color-paper: #f5f4f0;
+  --color-surface: #ecebe6;
+  --color-raised: #e4e3dd;
+  --color-line: #dfded8;
+  --color-ink: #161615;
+  --color-ink-hover: #2a2a28;
+  --color-muted: #6e6d6a;
+  --color-faint: #a8a7a2;
+
+  --text-tag: 10.5px;
+  --text-meta: 11px;
+  --text-control: 11.5px;
+  --text-cell: 12.5px;
+  --text-row: 13px;
+  --text-nav: 13.5px;
+  --text-card: 14.5px;
+  --text-heading: 15px;
+  --text-display: 28px;
+
+  --tracking-ui: -0.02em;
+  --tracking-display: -0.025em;
+  --tracking-label: 0.04em;
+  --tracking-spec: 0.03em;
+
+  --shadow-float: 0 18px 40px -14px rgb(22 22 21 / 0.18);
+  --shadow-modal: 0 30px 80px -30px rgb(22 22 21 / 0.35);
+
+  --ease-drawer: cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+
+@utility mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  letter-spacing: var(--tracking-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--color-ink);
+}
+
+a:hover {
+  color: var(--color-muted);
+}
+
+::selection {
+  background: var(--color-raised);
+}
+
+input::placeholder {
+  color: var(--color-faint);
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 1px solid var(--color-ink);
+  outline-offset: 1px;
 }
