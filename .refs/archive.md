@@ -13,14 +13,18 @@ rewritten as React + Tailwind.
 ## Files
 
 - `features/archive/catalog.ts` — `CatalogItem` discriminated union (one
-  variant per `ArtifactKind`), the static `CATALOG`, labels, condition
-  rank/names, `KINDS`, `kindGeometry(kind)` (per-kind base mesh),
-  `defaultGeometry(item)` (base mesh overridden by the item's own specs),
-  `itemSubtitle(item)`.
+  variant per `ArtifactKind`; every item carries `model` and `faces` from
+  its relic), labels, condition rank/names, `KINDS`, `kindGeometry(kind)`
+  (per-kind base mesh), `itemSubtitle(item)`. The data itself lives in
+  `relics/*.relic`, see [relic.md](./relic.md).
+- `features/archive/relic/` — `.relic` codec (`relic-file.ts`), manifest
+  validation (`manifest.ts`), server loader (`load-catalog.ts`).
+  `app/page.tsx` awaits `loadCatalog()` and passes `catalog` to
+  `ArchiveIndex`; `app/relics/[id]/[face]/route.ts` serves textures.
 - `features/archive/columns.ts` — per-domain list columns (`COLUMNS`), cell
   type → class map, min table widths, drawer spec rows (`specRows`).
 - `features/archive/query.ts` — filter/search/sort (`queryCatalog`) and
-  domain counts.
+  domain counts, both taking the catalog list as their first argument.
 - `features/archive/archive-index.tsx` — client component that owns all
   index state (including the texture editor draft) and the keyboard
   handler. Props mirror the design's tweakables:
@@ -31,11 +35,12 @@ rewritten as React + Tailwind.
   chrome (see [Mobile](#mobile-compact-layout)).
 - `features/archive/texture-editor/` — modal (`texture-editor.tsx`), 2D
   face editor (`face-editor.tsx`), field schema (`schema.ts`), image
-  ingest, 600 dpi template export, texture file format (`texture-file.ts`).
-- `features/archive/artifact-config.ts` — `ArtifactConfig` (mesh, face
-  images, fits), `blankConfig(geo)`, and `artifactProps(item, config?)`
-  which maps an item to `<Artifact>` props (catalog defaults when no config
-  is given).
+  ingest, 600 dpi template export, relic open/download (`texture-file.ts`).
+- `features/archive/artifact-config.ts` — `ArtifactModel` (mesh, fits),
+  `ArtifactConfig` (model + face images), `blankConfig(geo)`,
+  `relicAssetUrl(id, face)`, and `artifactProps(item, config?)` which maps
+  an item to `<Artifact>` props (the item's relic model and texture URLs
+  when no config is given).
 - `components/artifact/` — the reusable 3D `Artifact` viewer (see below).
 
 ## Behavior rules
@@ -113,49 +118,33 @@ texture editor animates in but not out (it unmounts on close).
 
 ## Texture editor
 
-Textures are going to live in this repo (or a DB) rather than in the
-browser, so the editor does not save anything locally. It builds a texture
-for an artifact **kind** and exports it as a file to upload.
+Textures live in the repo as `.relic` files (see [relic.md](./relic.md)),
+so the editor does not save anything locally. It opens a relic, edits its
+mesh and faces, and downloads the result as a `.relic` to commit.
 
 - **Kind picker** (Coin / Banknote / Phonecard / Stamp) sits in the modal
   header. Switching kind resets the mesh to `kindGeometry(kind)` and keeps
-  both face images and fits.
+  both face images and fits. The picker is **disabled** while the draft
+  belongs to a catalog entry (`meta.id` set), because that entry's `specs`
+  only fit its own kind.
 - **Draft** lives in `ArchiveIndex` state, not in the modal, so closing
   the editor (`Esc`, Close, scrim) and reopening keeps the work. It is lost
-  on page reload. Starts as `blankTexture("coin")`.
+  on page reload. Starts as `blankTexture("coin")`. `TextureDraft` is
+  `ArtifactConfig` + `kind` + `meta` (every manifest field except `kind`,
+  `model` and `assets`, carried through untouched).
 - **Faces**: per side upload / drag-drop an image, pan by dragging, scale
   by wheel, or use the Fit sliders. Images are downscaled to 1400px on the
   long edge and kept as WebP (PNG/JPEG fallback) data URLs. "Template ↓"
   exports a 600 dpi PNG print/scan template for the current side and mesh.
 - **Mesh defaults** resets only the mesh; **Clear** resets the whole draft
-  for the current kind.
-- **Download** writes `<kind>-texture.json`; **Open…** loads one back for
-  further editing.
+  for the current kind, `meta` included (detaches it from its entry).
+- **Open…** reads a `.relic`: asset bytes become in-memory data URLs so the
+  face editor and template export work unchanged. Decode errors show in the
+  status bar as `<file> · <reason>`.
+- **Download** writes `<id>.relic` (or `<kind>.relic` for a blank draft):
+  data URLs go back to raw bytes, manifest is `meta` + `kind` + `model`.
 - The preview renders the draft untextured (`textured={false}`), so faces
   without an image show clay instead of the catalog "scan" placeholder.
-
-### Texture file (`texture-file.ts`)
-
-```json
-{
-  "format": "aci.texture",
-  "version": 1,
-  "kind": "stamp",
-  "geo": { "w": 20, "h": 24, "perf": 14, "hole": 0.55, "margin": 1.6 },
-  "obv": "data:image/webp;base64,…",
-  "rev": "",
-  "fo": { "s": 1, "x": 0, "y": 0, "r": 0 },
-  "fr": { "s": 1, "x": 0, "y": 0, "r": 0 }
-}
-```
-
-Everything after `kind` is an `ArtifactConfig`, so a loaded file feeds
-straight into `artifactProps(item, config)`. `parseTexture` rejects files
-without the `format` marker or with an unknown kind; it only keeps `geo` and
-fit keys the kind's defaults define, with matching value types, and drops
-face values that are not `data:image/` URLs. Nothing reads these files at
-runtime yet: the catalog still renders defaults until textures are wired
-into the repo/DB.
 
 There is no auth. The cookie session that gated local saves was removed
 with local storage; add a real write guard when an upload endpoint exists.

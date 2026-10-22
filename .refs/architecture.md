@@ -35,11 +35,14 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 - `components/ui/` — shared primitives: `Button` (+ `buttonClass` for
   non-button elements such as a file `<label>`; `size="adaptive"` is 40px
   on phones, 28px from `regular:`), `TabButton`, `SegmentedControl`
-  (`touch` and `fill` sizes for phone controls), `SectionLabel`,
+  (`touch` and `fill` sizes for phone controls, `disabled`), `SectionLabel`,
   `RangeField` (taller rows below `regular:`), `useMediaQuery`, and `cx`.
 - `components/artifact/` — the reusable 3D `Artifact` viewer.
 - `features/<name>/` — one directory per feature. Currently
   `features/archive/`, see [archive.md](./archive.md).
+- `relics/` — the catalog data: one `.relic` per entry, read at build time
+  by `loadCatalog()` (see [relic.md](./relic.md)).
+- `app/relics/[id]/[face]/route.ts` — serves relic textures.
 - `public/` — static assets served from `/` (empty for now).
 
 Features import from `components/`, never the other way around.
@@ -79,9 +82,8 @@ re-adds. It points agents at the version-matched docs in
 
 ## Known gaps
 
-- Catalog data is a static array in `features/archive/catalog.ts`; there is
-  no database or API.
-- Textures are exported as files from the texture editor but nothing loads
-  them yet (see [archive.md](./archive.md#texture-editor)). No env vars or
-  Server Actions.
+- Catalog data is `relics/*.relic` read from disk at build time; there is
+  no database, upload endpoint or pack CLI. New relics are committed by hand
+  after downloading them from the texture editor. No env vars or Server
+  Actions.
 - No tests yet. Deployment: see [ci-cd.md](./ci-cd.md).
