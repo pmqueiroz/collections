@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -15,6 +15,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Master Index",
   description: "Catalog of coins, banknotes, phonecards and stamps.",
+  appleWebApp: { capable: true, title: "Master Index" },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#F5F4F0",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
