@@ -60,6 +60,7 @@ either is a decoder change; for zstd the spec must first say whether
   "origin": "France",
   "iso": "FRA",
   "year": 1960,
+  "amount": 1,
   "cond": "XF",
   "tex": true,
   "face": "1 F",
@@ -75,6 +76,10 @@ either is a decoder change; for zstd the spec must first say whether
 ```
 
 - **Universal** fields sit at the top level (`id` … `face`).
+- **`amount`** is how many physical copies of this exact entry (same item,
+  same year) the collection holds. Optional positive integer, defaults to
+  `1`; anything else fails with `invalid amount`. Duplicates of one year
+  are one relic with `amount > 1`, never separate relics.
 - **Domain schema** is `specs`; the field list per kind is `SPEC_FIELDS` in
   `features/archive/relic/manifest.ts`. All spec values are display strings.
   The loader flattens `specs` onto the `CatalogItem`, so list columns,
@@ -116,8 +121,18 @@ manifest without `assets` plus the decoded asset bytes.
 
 ## Adding or changing an entry
 
-The 31 original entries were generated once from the old static `CATALOG`
-array by a throwaway script (not committed). There is no pack CLI: edit an
+The original banknote, phonecard and stamp entries were generated once from
+the old static `CATALOG` array by a throwaway script (not committed). The
+coins (`NUM-C-*`) were imported once from the owner's Google Sheet (read via
+`rclone`, columns currency / amount / minting years / ISO / country), again
+by a throwaway script: one relic per coin + country + year, duplicate years
+folded into `amount`, ids in sheet order then year. The sheet only had those
+columns, so every coin has `cond: "VF"`, `tex: false`, the default coin
+model, and `"—"` for `mint`, `metal`, `dia`, `thk`, `wt`, `edge`. The sheet's
+`UAE` was corrected to ISO `ARE`. Those placeholders are meant to be
+corrected per entry.
+
+There is no pack CLI: edit an
 entry by opening its relic in the texture editor and downloading it back over
 `relics/<id>.relic`. A brand-new entry needs its catalog fields (`id`,
 `title`, `specs`, …) in the manifest; the editor preserves but does not edit

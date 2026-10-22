@@ -54,6 +54,11 @@ rewritten as React + Tailwind.
 - **Sort**: clicking the active sort flips direction; a new sort resets to
   ascending. Ties always fall back to catalog id. `origin` sorts by ISO code;
   `cond` sorts by `CONDITION_RANK` (best grade first).
+- **Amount**: when an item's `amount` is above 1, both list layouts show
+  `<n>x` right before the thumbnail (`amountLabel`); the slot is always
+  reserved so thumbnails stay aligned. The drawer lists it as `Quantity`.
+  Spec values of `"—"` render without their unit (`withUnit` in
+  `columns.ts`).
 - **List columns** change per domain tab. Column headers with a sort key are
   buttons and show the arrow.
 - **Hover preview** appears after `dwell` ms (default 300) and is suppressed
