@@ -18,6 +18,7 @@ type BaseItem = {
   origin: string;
   iso: string;
   year: number;
+  amount: number;
   cond: Condition;
   tex: boolean;
   face: string;
@@ -161,6 +162,10 @@ export function itemSubtitle(item: CatalogItem) {
       ? [item.year, item.iso, item.units, item.cond]
       : [item.year, item.iso, `${item.denom} ${item.cur}`, item.cond];
   return parts.join(" · ");
+}
+
+export function amountLabel(item: CatalogItem) {
+  return item.amount > 1 ? `${item.amount}x` : "";
 }
 
 export function itemSummary(item: CatalogItem) {

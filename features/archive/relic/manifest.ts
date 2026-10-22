@@ -43,6 +43,13 @@ export function parseModel(kind: ArtifactKind, value: unknown): ArtifactModel {
   };
 }
 
+function parseAmount(value: unknown) {
+  if (value === undefined) return 1;
+  if (!Number.isInteger(value) || (value as number) < 1)
+    throw new Error("invalid amount");
+  return value as number;
+}
+
 function isCondition(value: unknown): value is Condition {
   return typeof value === "string" && value in CONDITION_NAME;
 }
@@ -71,6 +78,7 @@ export function parseCatalogEntry({
     origin: manifest.origin,
     iso: manifest.iso,
     year: manifest.year,
+    amount: parseAmount(manifest.amount),
     cond: manifest.cond,
     tex: manifest.tex,
     face: manifest.face,

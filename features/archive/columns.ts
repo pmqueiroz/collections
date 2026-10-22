@@ -124,6 +124,10 @@ export function cellValue(item: CatalogItem, field: string) {
 
 export type SpecRow = { label: string; value: string };
 
+function withUnit(value: string, unit: string) {
+  return value === "—" ? value : `${value} ${unit}`;
+}
+
 function kindSpec(item: CatalogItem): [string, string][] {
   switch (item.kind) {
     case "coin":
@@ -131,9 +135,9 @@ function kindSpec(item: CatalogItem): [string, string][] {
         ["Denomination", `${item.denom} ${item.cur}`],
         ["Mint", item.mint],
         ["Metal", item.metal],
-        ["Diameter", `${item.dia} mm`],
-        ["Thickness", `${item.thk} mm`],
-        ["Weight", `${item.wt} g`],
+        ["Diameter", withUnit(item.dia, "mm")],
+        ["Thickness", withUnit(item.thk, "mm")],
+        ["Weight", withUnit(item.wt, "g")],
         ["Edge", item.edge],
       ];
     case "note":
@@ -171,6 +175,7 @@ export function specRows(item: CatalogItem): SpecRow[] {
     ["Designation", item.title],
     ["Origin", `${item.origin} · ${item.iso}`],
     [yearLabel, String(item.year)],
+    ["Quantity", String(item.amount)],
     ["Condition", `${item.cond} — ${CONDITION_NAME[item.cond]}`],
     ...kindSpec(item),
     ["Mesh", MESH_LABEL[item.kind]],

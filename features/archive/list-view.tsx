@@ -1,6 +1,7 @@
 import type { MouseEvent } from "react";
 import { cx } from "../../components/ui/cx";
 import {
+  amountLabel,
   type CatalogItem,
   type Domain,
   itemSubtitle,
@@ -25,6 +26,7 @@ type ListViewProps = {
 };
 
 const ROW = "grid items-center gap-[18px] border-b border-line px-7";
+const AMOUNT = "mono text-cell text-muted text-right tabular-nums";
 
 export function ListView({
   items,
@@ -39,7 +41,7 @@ export function ListView({
   onUnhover,
 }: ListViewProps) {
   const columns = COLUMNS[domain];
-  const gridTemplateColumns = `24px ${columns.map((column) => column.track).join(" ")}`;
+  const gridTemplateColumns = `32px 24px ${columns.map((column) => column.track).join(" ")}`;
 
   return (
     <main>
@@ -54,6 +56,9 @@ export function ListView({
               selectedId === item.id ? "bg-raised" : "bg-transparent",
             )}
           >
+            <div className={cx(AMOUNT, "w-8 flex-none")}>
+              {amountLabel(item)}
+            </div>
             <div className="flex size-10 flex-none items-center justify-center rounded-xs bg-surface">
               <Silhouette kind={item.kind} />
             </div>
@@ -81,6 +86,7 @@ export function ListView({
             )}
             style={{ gridTemplateColumns }}
           >
+            <div />
             <div />
             {columns.map((column) => {
               const sortKey = column.sort;
@@ -124,6 +130,7 @@ export function ListView({
               )}
               style={{ gridTemplateColumns, height: rowHeight }}
             >
+              <div className={AMOUNT}>{amountLabel(item)}</div>
               <Silhouette kind={item.kind} />
               {columns.map((column) => (
                 <div
