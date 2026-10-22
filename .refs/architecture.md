@@ -23,18 +23,41 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 - **Lint/format:** Biome (`biome.json`), see
   [conventions.md](./conventions.md#imports).
 - **Git hooks:** lefthook (`lefthook.yml`), see [ci-cd.md](./ci-cd.md).
+- **Server Actions:** `features/archive/session.ts` (cookie session).
+  Env: `ARCHIVE_USER`, `ARCHIVE_PASSWORD`, `ARCHIVE_SESSION_SECRET`
+  (`.env.example`).
 - **Toolchain:** Node 24 LTS, pinned in `.tool-versions` (asdf) and
   `engines.node` in `package.json`. npm is the package manager
   (`package-lock.json`).
 
 ## Layout
 
-- `app/` — App Router root. `layout.tsx` is the root layout (fonts via
-  `next/font/google`, `metadata`), `page.tsx` is `/`, `globals.css` is the
-  only global stylesheet.
-- `public/` — static assets served from `/`.
+- `app/` — App Router root. `layout.tsx` is the root layout (Geist and Geist
+  Mono via `next/font/google`, `metadata`), `page.tsx` renders the archive
+  index at `/`, `globals.css` holds the design tokens.
+- `components/ui/` — shared primitives: `Button` (+ `buttonClass` for
+  non-button elements such as a file `<label>`), `TabButton`,
+  `SegmentedControl`, `SectionLabel`, `RangeField`, and `cx`.
+- `components/artifact/` — the reusable 3D `Artifact` viewer.
+- `features/<name>/` — one directory per feature. Currently
+  `features/archive/`, see [archive.md](./archive.md).
+- `public/` — static assets served from `/` (empty for now).
+
+Features import from `components/`, never the other way around.
 - `next.config.ts` — `cacheComponents: true`, `partialPrefetching: true`,
   Tailwind Turbopack loader.
+
+## Design tokens
+
+`app/globals.css` defines the palette (`paper`, `surface`, `raised`, `line`,
+`ink`, `ink-hover`, `muted`, `faint`), a type scale (`text-tag` 10.5px …
+`text-display` 28px), tracking (`tracking-ui` −0.02em is the body default,
+`tracking-label`, `tracking-spec`, `tracking-display`), shadows (`float`,
+`modal`) and `ease-drawer`, all as Tailwind `@theme` tokens. The `mono`
+utility sets Geist Mono, zero tracking and tabular figures — use it for every
+code/number label. UI chrome uses tokens only; the greys inside the 3D
+artifact meshes are material colors and stay local to `components/artifact/`.
+Light theme only; the design has no dark mode.
 
 ## Rendering & caching
 
@@ -52,6 +75,8 @@ re-adds. It points agents at the version-matched docs in
 
 ## Known gaps
 
-- `app/page.tsx` is still the create-next-app starter page; no real feature
-  exists yet.
+- Catalog data is a static array in `features/archive/catalog.ts`; there is
+  no database or API.
+- Artifact overrides persist to `localStorage` only (see
+  [archive.md](./archive.md#persistence-and-auth)).
 - No tests, no CI workflow, no deployment config yet.
