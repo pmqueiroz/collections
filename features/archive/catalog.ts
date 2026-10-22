@@ -86,6 +86,11 @@ export const DOMAINS: { value: Domain; label: string }[] = [
   { value: "stamp", label: "Stamps" },
 ];
 
+export function domainTitle(domain: Domain) {
+  if (domain === "all") return "Index";
+  return DOMAINS.find((option) => option.value === domain)?.label ?? "Index";
+}
+
 export const SORTS: { value: SortKey; label: string }[] = [
   { value: "id", label: "Catalog ID" },
   { value: "year", label: "Year" },

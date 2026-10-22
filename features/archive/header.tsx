@@ -53,7 +53,7 @@ export function Header({
   onView,
 }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-paper">
+    <header className="sticky top-0 z-20 hidden border-b border-line bg-paper pt-safe regular:block">
       <div className="flex flex-wrap items-center gap-x-7 gap-y-3 px-7 py-3.5">
         <div className="flex items-baseline gap-2.5">
           <h1 className="text-sm font-semibold">Master Index</h1>

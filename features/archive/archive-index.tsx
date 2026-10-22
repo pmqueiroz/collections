@@ -1,7 +1,15 @@
 "use client";
 
 import { type MouseEvent, useEffect, useMemo, useRef, useState } from "react";
-import { CATALOG, type Domain, type SortKey } from "./catalog";
+import { Button } from "../../components/ui/button";
+import { cx } from "../../components/ui/cx";
+import {
+  COMPACT_QUERY,
+  FINE_HOVER_QUERY,
+  useMediaQuery,
+} from "../../components/ui/use-media-query";
+import { CATALOG, type Domain, domainTitle, type SortKey } from "./catalog";
+import { CompactHeader } from "./compact-header";
 import {
   type ArtifactConfig,
   type ConfigStore,
@@ -11,6 +19,7 @@ import {
 } from "./config-store";
 import { Configurator } from "./configurator/configurator";
 import { DetailDrawer, ZOOM_MAX, ZOOM_MIN } from "./detail-drawer";
+import { DomainTabBar } from "./domain-tab-bar";
 import { GridView } from "./grid-view";
 import { Header, type View } from "./header";
 import { HoverPreview, type PreviewPosition } from "./hover-preview";
@@ -52,6 +61,8 @@ export function ArchiveIndex({
   const [configuring, setConfiguring] = useState(false);
   const [configKey, setConfigKey] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const compact = useMediaQuery(COMPACT_QUERY);
+  const fineHover = useMediaQuery(FINE_HOVER_QUERY, true);
 
   const items = useMemo(
     () => queryCatalog(domain, sort, direction, query),
@@ -79,7 +90,7 @@ export function ArchiveIndex({
     const { clientX, clientY } = event;
     setPreview(null);
     clearTimeout(timer.current);
-    if (open) return;
+    if (open || compact || !fineHover) return;
     timer.current = setTimeout(() => {
       let x = clientX + 20;
       if (x + PREVIEW_WIDTH > window.innerWidth) x = clientX - 300;
@@ -118,6 +129,16 @@ export function ArchiveIndex({
       setSort(key);
       setDirection(1);
     }
+  };
+
+  const onDomain = (next: Domain) => {
+    if (next === domain) window.scrollTo({ top: 0, behavior: "smooth" });
+    setDomain(next);
+  };
+
+  const onSortKey = (key: SortKey) => {
+    setSort(key);
+    setDirection(1);
   };
 
   const changeZoom = (delta: number) =>
@@ -175,51 +196,97 @@ export function ArchiveIndex({
   }, []);
 
   const selectedConfig = configFor(selected, store);
+  const selectedIndex = items.findIndex((item) => item.id === selected.id);
+  const pageShift = compact && open ? "-translate-x-[28%]" : "";
+  const onSignOut = () => {
+    signOut().finally(() => setAuthed(false));
+  };
+  const onView = (next: View) => {
+    if (next === "grid") unhover();
+    setView(next);
+  };
 
   return (
     <div className="min-h-screen bg-paper text-ink">
-      <Header
-        shown={items.length}
-        total={CATALOG.length}
-        authed={authed}
-        onSignOut={() => {
-          signOut().finally(() => setAuthed(false));
-        }}
-        domain={domain}
-        counts={COUNTS}
-        onDomain={setDomain}
-        sort={sort}
-        direction={direction}
-        onSort={onSort}
-        query={query}
-        onQuery={setQuery}
-        view={view}
-        onView={(next) => {
-          if (next === "grid") unhover();
-          setView(next);
-        }}
-      />
-
-      {items.length === 0 ? (
-        <div className="px-7 py-16 mono text-cell text-faint">
-          No records match “{query}”.
-        </div>
-      ) : view === "list" ? (
-        <ListView
-          items={items}
+      <div
+        className={cx(
+          "min-h-screen transition-transform duration-450 ease-drawer",
+          pageShift,
+        )}
+      >
+        <CompactHeader
           domain={domain}
+          shown={items.length}
+          authed={authed}
+          onSignOut={onSignOut}
+          view={view}
+          onView={onView}
+          query={query}
+          onQuery={setQuery}
+          sort={sort}
+          direction={direction}
+          onSortKey={onSortKey}
+          onToggleDirection={() =>
+            setDirection((current) => (current > 0 ? -1 : 1))
+          }
+        />
+        <Header
+          shown={items.length}
+          total={CATALOG.length}
+          authed={authed}
+          onSignOut={onSignOut}
+          domain={domain}
+          counts={COUNTS}
+          onDomain={onDomain}
           sort={sort}
           direction={direction}
           onSort={onSort}
-          selectedId={open ? selected.id : null}
-          rowHeight={rowDensity === "regular" ? 52 : 42}
-          onOpen={openItem}
-          onHover={onHover}
-          onUnhover={unhover}
+          query={query}
+          onQuery={setQuery}
+          view={view}
+          onView={onView}
         />
-      ) : (
-        <GridView items={items} store={store} onOpen={openItem} />
-      )}
+
+        {items.length === 0 ? (
+          <div className="flex flex-col items-start gap-3 px-4 py-12 regular:px-7 regular:py-16">
+            <div className="mono text-cell text-faint">
+              No records match “{query}”.
+            </div>
+            <Button size="adaptive" onClick={() => setQuery("")}>
+              Clear search
+            </Button>
+          </div>
+        ) : view === "list" ? (
+          <ListView
+            items={items}
+            domain={domain}
+            sort={sort}
+            direction={direction}
+            onSort={onSort}
+            selectedId={open ? selected.id : null}
+            rowHeight={rowDensity === "regular" ? 52 : 42}
+            onOpen={openItem}
+            onHover={onHover}
+            onUnhover={unhover}
+          />
+        ) : (
+          <GridView
+            items={items}
+            store={store}
+            mode={compact ? "static" : "tilt"}
+            onOpen={openItem}
+          />
+        )}
+      </div>
+
+      <DomainTabBar
+        domain={domain}
+        onDomain={onDomain}
+        className={cx(
+          "transition-transform duration-450 ease-drawer regular:hidden",
+          pageShift,
+        )}
+      />
 
       {preview && previewItem && (
         <HoverPreview
@@ -232,6 +299,9 @@ export function ArchiveIndex({
 
       <DetailDrawer
         open={open}
+        compact={compact}
+        backLabel={domainTitle(domain)}
+        position={`${selectedIndex < 0 ? "–" : selectedIndex + 1} / ${items.length}`}
         item={selected}
         config={selectedConfig}
         onClose={() => setOpen(false)}
@@ -257,6 +327,7 @@ export function ArchiveIndex({
       {configuring && (
         <Configurator
           key={configKey}
+          compact={compact}
           item={selected}
           config={selectedConfig}
           stored={Boolean(store[selected.id])}

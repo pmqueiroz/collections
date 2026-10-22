@@ -2,7 +2,9 @@ import Image from "next/image";
 import {
   type CSSProperties,
   type PointerEvent,
+  useEffect,
   useRef,
+  useState,
   type WheelEvent,
 } from "react";
 import {
@@ -19,6 +21,7 @@ import { templateDimensions } from "./download-template";
 
 const MAX_WIDTH = 330;
 const MAX_HEIGHT = 220;
+const SIDE_GUTTER = 76;
 
 type FaceEditorProps = {
   item: CatalogItem;
@@ -26,6 +29,7 @@ type FaceEditorProps = {
   image: string;
   fit: Fit;
   sideLabel: string;
+  hint: string;
   onFit: (patch: Partial<Fit>) => void;
   onFile: (file: File | undefined) => void;
 };
@@ -69,11 +73,27 @@ export function FaceEditor({
   image,
   fit,
   sideLabel,
+  hint,
   onFit,
   onFile,
 }: FaceEditorProps) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [maxWidth, setMaxWidth] = useState(MAX_WIDTH);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const observer = new ResizeObserver(() =>
+      setMaxWidth(
+        Math.max(80, Math.min(MAX_WIDTH, section.clientWidth - SIDE_GUTTER)),
+      ),
+    );
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
   const [widthMm, heightMm] = templateDimensions(item, geo);
-  const scale = Math.min(MAX_WIDTH / widthMm, MAX_HEIGHT / heightMm);
+  const scale = Math.min(maxWidth / widthMm, MAX_HEIGHT / heightMm);
   const width = widthMm * scale;
   const height = heightMm * scale;
   const { radius, safe, safeRadius, mask } = shape(
@@ -123,6 +143,7 @@ export function FaceEditor({
 
   return (
     <section
+      ref={sectionRef}
       aria-label={`${sideLabel} face editor`}
       onDragOver={(event) => event.preventDefault()}
       onDrop={(event) => {
@@ -188,7 +209,7 @@ export function FaceEditor({
         </div>
       </div>
       <div className="pointer-events-none absolute bottom-2.5 left-3 mono text-tag text-faint">
-        {sideLabel} · drag · scroll · drop
+        {sideLabel} · {hint}
       </div>
     </section>
   );
