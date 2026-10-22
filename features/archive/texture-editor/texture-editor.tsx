@@ -22,6 +22,7 @@ import { RangeField } from "../../../components/ui/range-field";
 import { SectionLabel } from "../../../components/ui/section-label";
 import { SegmentedControl } from "../../../components/ui/segmented-control";
 import { KIND_LABEL, KINDS, kindGeometry } from "../catalog";
+import { RELIC_EXTENSION, RELIC_MIME } from "../relic/relic-file";
 import { downloadTemplate } from "./download-template";
 import { FaceEditor } from "./face-editor";
 import { ingestImage } from "./ingest-image";
@@ -33,8 +34,9 @@ import {
 } from "./schema";
 import {
   blankTexture,
+  catalogId,
   downloadTexture,
-  parseTexture,
+  openTexture,
   type TextureDraft,
   textureFileName,
 } from "./texture-file";
@@ -119,19 +121,25 @@ export function TextureEditor({
   const setKind = (kind: ArtifactKind) =>
     setDraft((current) => ({ ...current, kind, geo: kindGeometry(kind) }));
 
-  const openTexture = async (event: ChangeEvent<HTMLInputElement>) => {
+  const openRelic = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
-    const loaded = parseTexture(await file.text());
-    if (!loaded) return setStatus("not a texture file");
-    setDraft(loaded);
-    setStatus(`opened ${file.name}`);
+    try {
+      setDraft(await openTexture(file));
+      setStatus(`opened ${file.name}`);
+    } catch (error) {
+      setStatus(`${file.name} · ${(error as Error).message}`);
+    }
   };
 
-  const download = () => {
-    downloadTexture(draft);
-    setStatus(`downloaded ${textureFileName(draft)}`);
+  const download = async () => {
+    try {
+      await downloadTexture(draft);
+      setStatus(`downloaded ${textureFileName(draft)}`);
+    } catch (error) {
+      setStatus((error as Error).message);
+    }
   };
 
   const clear = () => {
@@ -139,14 +147,16 @@ export function TextureEditor({
     setStatus("cleared");
   };
 
-  const statusText = status || "draft · download to export";
+  const entryId = catalogId(draft);
+  const statusText =
+    status || (entryId ? `${entryId} · draft` : "draft · download to export");
   const openButton = (
     <label className={cx(buttonClass("outline", "adaptive"), "box-border")}>
       Open…
       <input
         type="file"
-        accept="application/json,.json"
-        onChange={openTexture}
+        accept={`${RELIC_EXTENSION},${RELIC_MIME}`}
+        onChange={openRelic}
         className="hidden"
       />
     </label>
@@ -208,6 +218,7 @@ export function TextureEditor({
                 options={KIND_OPTIONS}
                 value={draft.kind}
                 onChange={setKind}
+                disabled={entryId !== null}
               />
             </div>
           </div>
@@ -219,6 +230,7 @@ export function TextureEditor({
               options={KIND_OPTIONS}
               value={draft.kind}
               onChange={setKind}
+              disabled={entryId !== null}
             />
             <div className="mr-auto mono text-tag uppercase tracking-label text-faint">
               Texture · Mesh

@@ -1,30 +1,65 @@
-import { DEFAULT_FIT } from "../../../components/artifact/geometry";
-import type { ArtifactKind } from "../../../components/artifact/types";
+import type {
+  ArtifactKind,
+  FaceSide,
+} from "../../../components/artifact/types";
 import { type ArtifactConfig, blankConfig } from "../artifact-config";
-import { KINDS, kindGeometry } from "../catalog";
+import { kindGeometry } from "../catalog";
+import { parseKind, parseModel } from "../relic/manifest";
+import {
+  decodeRelic,
+  encodeRelic,
+  RELIC_EXTENSION,
+  RELIC_MIME,
+  type RelicAsset,
+  type RelicAssets,
+} from "../relic/relic-file";
 
-export type TextureDraft = ArtifactConfig & { kind: ArtifactKind };
+export type TextureDraft = ArtifactConfig & {
+  kind: ArtifactKind;
+  meta: Record<string, unknown>;
+};
 
-const FORMAT = "aci.texture";
-const VERSION = 1;
+const FACES: FaceSide[] = ["obv", "rev"];
 
 export function blankTexture(kind: ArtifactKind): TextureDraft {
-  return { kind, ...blankConfig(kindGeometry(kind)) };
+  return { kind, meta: {}, ...blankConfig(kindGeometry(kind)) };
+}
+
+export function catalogId(draft: TextureDraft) {
+  return typeof draft.meta.id === "string" ? draft.meta.id : null;
 }
 
 export function textureFileName(draft: TextureDraft) {
-  return `${draft.kind}-texture.json`;
+  return `${catalogId(draft) ?? draft.kind}${RELIC_EXTENSION}`;
 }
 
-export function downloadTexture(draft: TextureDraft) {
-  const file = JSON.stringify(
-    { format: FORMAT, version: VERSION, ...draft },
-    null,
-    2,
-  );
-  const url = URL.createObjectURL(
-    new Blob([file], { type: "application/json" }),
-  );
+async function dataUrlAsset(dataUrl: string): Promise<RelicAsset> {
+  const blob = await (await fetch(dataUrl)).blob();
+  return { bytes: new Uint8Array(await blob.arrayBuffer()), type: blob.type };
+}
+
+function assetDataUrl(asset: RelicAsset) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(new Blob([asset.bytes], { type: asset.type }));
+  });
+}
+
+export async function downloadTexture(draft: TextureDraft) {
+  const assets: RelicAssets = {};
+  for (const face of FACES)
+    if (draft[face]) assets[face] = await dataUrlAsset(draft[face]);
+  const file = encodeRelic({
+    manifest: {
+      ...draft.meta,
+      kind: draft.kind,
+      model: { geo: draft.geo, fo: draft.fo, fr: draft.fr },
+    },
+    assets,
+  });
+  const url = URL.createObjectURL(new Blob([file], { type: RELIC_MIME }));
   const link = document.createElement("a");
   link.href = url;
   link.download = textureFileName(draft);
@@ -32,43 +67,18 @@ export function downloadTexture(draft: TextureDraft) {
   URL.revokeObjectURL(url);
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function mergeTyped<T extends Record<string, unknown>>(
-  base: T,
-  value: unknown,
-): T {
-  if (!isRecord(value)) return base;
-  const merged: Record<string, unknown> = { ...base };
-  for (const key of Object.keys(merged))
-    if (typeof value[key] === typeof merged[key]) merged[key] = value[key];
-  return merged as T;
-}
-
-function imageUrl(value: unknown) {
-  return typeof value === "string" && value.startsWith("data:image/")
-    ? value
-    : "";
-}
-
-export function parseTexture(text: string): TextureDraft | null {
-  let data: unknown;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    return null;
-  }
-  if (!isRecord(data) || data.format !== FORMAT) return null;
-  const kind = KINDS.find((option) => option === data.kind);
-  if (!kind) return null;
+export async function openTexture(file: File): Promise<TextureDraft> {
+  const { manifest, assets } = decodeRelic(
+    new Uint8Array(await file.arrayBuffer()),
+  );
+  const kind = parseKind(manifest.kind);
+  if (!kind) throw new Error("unknown kind");
+  const { kind: _kind, model, ...meta } = manifest;
   return {
     kind,
-    geo: mergeTyped(kindGeometry(kind), data.geo),
-    obv: imageUrl(data.obv),
-    rev: imageUrl(data.rev),
-    fo: mergeTyped(DEFAULT_FIT, data.fo),
-    fr: mergeTyped(DEFAULT_FIT, data.fr),
+    meta,
+    ...parseModel(kind, model),
+    obv: assets.obv ? await assetDataUrl(assets.obv) : "",
+    rev: assets.rev ? await assetDataUrl(assets.rev) : "",
   };
 }
