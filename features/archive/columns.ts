@@ -29,9 +29,9 @@ export type Column = {
 
 export const CELL_CLASS: Record<CellType, string> = {
   id: "mono text-cell font-normal text-ink",
-  title: "text-sm font-medium text-ink",
-  text: "text-row font-normal text-ink",
-  meta: "text-row font-normal text-muted",
+  title: "text-sm font-medium tracking-ui text-ink",
+  text: "text-row font-normal tracking-ui text-ink",
+  meta: "text-row font-normal tracking-ui text-muted",
   code: "mono text-cell font-medium text-ink",
   num: "mono text-cell font-normal text-ink text-right",
   mono: "mono text-cell font-normal text-ink",
