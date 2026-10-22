@@ -61,15 +61,21 @@ rewritten as React + Tailwind.
   `columns.ts`).
 - **List columns** change per domain tab. Column headers with a sort key are
   buttons and show the arrow.
-- **Grid mounting**: each grid card mounts its `Artifact` only while its
-  stage is within 600px (vertically) of the viewport (`useInView` in
-  `components/ui/use-in-view.ts`); off-screen cards keep their box and
-  caption but no rig. A full CSS-3D rig is hundreds of preserve-3d nodes
-  (a note is 11 strips x 2 face windows, a coin 40 rim segments), so
-  mounting all of them made the grid ~20k nodes and switching to it took
-  ~600ms. Cards are `memo`ed and `GridView` passes them a stable `onOpen`
-  (latest handler kept in a ref), so `ArchiveIndex` state changes such as
-  drawer spin/zoom/flip or hover do not re-render every rig.
+- **Grid rendering**: a full CSS-3D rig is hundreds of preserve-3d nodes
+  (a note is 11 strips x 2 face windows, a coin 40 rim segments), and the
+  grid used to mount one per relic (~20k nodes, ~600ms to switch views,
+  janky scroll). Three things keep it cheap now:
+  - Each card renders its `Artifact` in `flat` mode: the front face only,
+    in the same resting pose, about a dozen nodes.
+  - Hovering a card (desktop with fine hover, `tilt` prop on `GridView`)
+    swaps that one card to `tilt`, the full rig. On leave it stays 3D for
+    `SETTLE_MS` (700ms) so the tilt spring can return to rest before it
+    flips back to flat. Phones never leave `flat`.
+  - A card mounts its `Artifact` only while its stage is within 600px
+    (vertically) of the viewport (`useInView`); off-screen cards keep their
+    box and caption. Cards are `memo`ed and get a stable `onOpen` (latest
+    handler kept in a ref), so `ArchiveIndex` state changes (drawer
+    spin/zoom/flip, hover) do not re-render the grid.
 - **Hover preview** appears after `dwell` ms (default 300) and is suppressed
   while the drawer is open. Any scroll (capture phase) hides it. It flips to
   the cursor's left when it would overflow the viewport.
@@ -153,7 +159,7 @@ Compact behavior:
 - **Bottom tab bar** replaces the domain tabs. Tapping the active domain
   scrolls to top. Lists get bottom padding of tab-bar height + safe area.
 - **List** rows are 64px tap targets (silhouette tile, id, title,
-  subtitle, chevron). **Grid** is two columns with `static` artifacts (no
+  subtitle, chevron). **Grid** is two columns with `flat` artifacts (no
   tilt on touch).
 - **Hover preview** never shows when compact or when the device lacks
   `(hover: hover) and (pointer: fine)`.
@@ -218,7 +224,9 @@ A CSS-3D rig (no WebGL). `artifact.tsx` owns motion; `coin.tsx`,
 shared face layers (sheen, clay grid, image). Geometry is in millimetres and
 scaled into a 240px rig.
 
-- **Modes**: `static`; `tilt` (pointer-follow, spring 170/13, ±12°);
+- **Modes**: `flat` (static pose, mesh draws only its front face: no coin
+  rim, card edge layers, note strips or back faces; used by the grid);
+  `static`; `tilt` (pointer-follow, spring 170/13, ±12°);
   `orbit` (auto-rotate at `rpm`, drag to rotate with X clamped ±70°, wheel
   calls `onZoom`, two-finger pinch calls `onZoom(±1)` each time the finger
   span changes by ~10%, spring-animated flip and zoom).
