@@ -11,6 +11,7 @@ type SegmentedControlProps<T> = {
   onChange: (value: T) => void;
   size?: SegmentedSize;
   framed?: boolean;
+  disabled?: boolean;
   className?: string;
 };
 
@@ -43,6 +44,7 @@ export function SegmentedControl<T extends string | boolean>({
   onChange,
   size = "sm",
   framed = false,
+  disabled = false,
   className,
 }: SegmentedControlProps<T>) {
   return (
@@ -61,11 +63,16 @@ export function SegmentedControl<T extends string | boolean>({
             key={String(option.value)}
             type="button"
             aria-pressed={active}
+            disabled={disabled}
             onClick={() => onChange(option.value)}
             className={cx(
-              "flex cursor-pointer items-center whitespace-nowrap border-0",
+              "flex cursor-pointer items-center whitespace-nowrap border-0 disabled:cursor-default",
               SIZE[size].item,
-              active ? "bg-ink text-paper" : "bg-transparent text-muted",
+              active
+                ? "bg-ink text-paper"
+                : disabled
+                  ? "bg-transparent text-faint"
+                  : "bg-transparent text-muted",
             )}
           >
             {option.label}
