@@ -1,6 +1,6 @@
 import { DEFAULT_FIT } from "../../components/artifact/geometry";
 import type { FaceSide, Fit, Geometry } from "../../components/artifact/types";
-import type { CatalogItem } from "./catalog";
+import { type CatalogItem, itemYear } from "./catalog";
 
 export type ArtifactModel = {
   geo: Geometry;
@@ -44,7 +44,7 @@ export function artifactProps(
     textured: item.tex,
     face: item.face,
     code: item.id,
-    year: String(item.year),
+    year: itemYear(item),
     origin: item.origin,
     ...config,
   };

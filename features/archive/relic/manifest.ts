@@ -43,6 +43,12 @@ export function parseModel(kind: ArtifactKind, value: unknown): ArtifactModel {
   };
 }
 
+function parseYear(value: unknown) {
+  if (value === undefined || value === null) return null;
+  if (!Number.isInteger(value)) throw new Error("invalid year");
+  return value as number;
+}
+
 function parseAmount(value: unknown) {
   if (value === undefined) return 1;
   if (!Number.isInteger(value) || (value as number) < 1)
@@ -63,7 +69,6 @@ export function parseCatalogEntry({
   for (const field of TEXT_FIELDS)
     if (typeof manifest[field] !== "string")
       throw new Error(`missing ${field}`);
-  if (!Number.isInteger(manifest.year)) throw new Error("missing year");
   if (!isCondition(manifest.cond)) throw new Error("unknown condition");
   if (typeof manifest.tex !== "boolean") throw new Error("missing tex");
   const specs = isRecord(manifest.specs) ? manifest.specs : {};
@@ -77,7 +82,7 @@ export function parseCatalogEntry({
     title: manifest.title,
     origin: manifest.origin,
     iso: manifest.iso,
-    year: manifest.year,
+    year: parseYear(manifest.year),
     amount: parseAmount(manifest.amount),
     cond: manifest.cond,
     tex: manifest.tex,

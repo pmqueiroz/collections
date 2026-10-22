@@ -2,6 +2,7 @@ import {
   type CatalogItem,
   CONDITION_RANK,
   type Domain,
+  itemYear,
   KIND_LABEL,
   type SortKey,
 } from "./catalog";
@@ -10,7 +11,7 @@ export type SortDirection = 1 | -1;
 
 const COMPARE: Record<SortKey, (a: CatalogItem, b: CatalogItem) => number> = {
   id: (a, b) => a.id.localeCompare(b.id),
-  year: (a, b) => a.year - b.year,
+  year: (a, b) => (a.year ?? 0) - (b.year ?? 0),
   origin: (a, b) => a.iso.localeCompare(b.iso),
   cond: (a, b) => CONDITION_RANK[a.cond] - CONDITION_RANK[b.cond],
 };
@@ -29,13 +30,17 @@ function searchText(item: CatalogItem) {
     item.title,
     item.origin,
     item.iso,
-    String(item.year),
+    itemYear(item),
     KIND_LABEL[item.kind],
     item.cond,
     ...extra,
   ]
     .join(" ")
     .toLowerCase();
+}
+
+function yearMissing(item: CatalogItem) {
+  return item.year === null ? 1 : 0;
 }
 
 export function queryCatalog(
@@ -53,7 +58,11 @@ export function queryCatalog(
         (domain === "all" || item.kind === domain) &&
         (!needle || searchText(item).includes(needle)),
     )
-    .sort((a, b) => (compare(a, b) || a.id.localeCompare(b.id)) * direction);
+    .sort(
+      (a, b) =>
+        (sort === "year" && yearMissing(a) - yearMissing(b)) ||
+        (compare(a, b) || a.id.localeCompare(b.id)) * direction,
+    );
 }
 
 export function domainCounts(catalog: CatalogItem[]) {

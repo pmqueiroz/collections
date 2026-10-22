@@ -4,6 +4,7 @@ import type { ArtifactKind } from "../../../components/artifact/types";
 import {
   type CatalogItem,
   itemSubtitle,
+  itemYear,
   KIND_LABEL,
 } from "../../../features/archive/catalog";
 import {
@@ -118,7 +119,7 @@ export default async function Image({
             color: MUTED,
           }}
         >
-          {`${KIND_LABEL[item.kind]} · ${item.origin} · ${item.year}`}
+          {`${KIND_LABEL[item.kind]} · ${item.origin} · ${itemYear(item)}`}
         </div>
         <div
           style={{

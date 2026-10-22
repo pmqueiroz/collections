@@ -5,7 +5,7 @@ import { cx } from "../../components/ui/cx";
 import { SectionLabel } from "../../components/ui/section-label";
 import { SegmentedControl } from "../../components/ui/segmented-control";
 import { artifactProps } from "./artifact-config";
-import { type CatalogItem, KIND_LABEL } from "./catalog";
+import { type CatalogItem, itemYear, KIND_LABEL } from "./catalog";
 import { specRows } from "./columns";
 
 export const ZOOM_MIN = 0.6;
@@ -163,7 +163,7 @@ export function DetailDrawer({
             className={cx("flex flex-col gap-1.5 pb-[18px] pt-[22px]", padX)}
           >
             <div className="mono text-tag uppercase tracking-label text-muted">
-              {KIND_LABEL[item.kind]} · {item.origin} · {item.year}
+              {KIND_LABEL[item.kind]} · {item.origin} · {itemYear(item)}
             </div>
             <h2
               className={cx(

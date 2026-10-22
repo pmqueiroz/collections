@@ -17,7 +17,7 @@ type BaseItem = {
   title: string;
   origin: string;
   iso: string;
-  year: number;
+  year: number | null;
   amount: number;
   cond: Condition;
   tex: boolean;
@@ -156,11 +156,15 @@ export function kindGeometry(kind: ArtifactKind): Geometry {
   return { ...KIND_GEOMETRY[kind] };
 }
 
+export function itemYear(item: CatalogItem) {
+  return item.year === null ? "—" : String(item.year);
+}
+
 export function itemSubtitle(item: CatalogItem) {
   const parts =
     item.kind === "card"
-      ? [item.year, item.iso, item.units, item.cond]
-      : [item.year, item.iso, `${item.denom} ${item.cur}`, item.cond];
+      ? [itemYear(item), item.iso, item.units, item.cond]
+      : [itemYear(item), item.iso, `${item.denom} ${item.cur}`, item.cond];
   return parts.join(" · ");
 }
 
