@@ -50,6 +50,15 @@ function align4(length: number) {
   return (length + 3) & ~3;
 }
 
+function sameAsset(a: RelicAsset | undefined, b: RelicAsset) {
+  return (
+    a !== undefined &&
+    a.type === b.type &&
+    a.bytes.length === b.bytes.length &&
+    a.bytes.every((byte, index) => byte === b.bytes[index])
+  );
+}
+
 export function encodeRelic({ manifest, assets }: RelicContents) {
   const entries: Partial<Record<FaceSide, RelicAssetEntry>> = {};
   let flags = 0;
@@ -59,12 +68,19 @@ export function encodeRelic({ manifest, assets }: RelicContents) {
     if (!asset) continue;
     if (!RELIC_IMAGE_TYPES.includes(asset.type))
       throw new Error(`unsupported ${face} image type ${asset.type}`);
+    const shared = FACES.find(
+      (other) => entries[other] && sameAsset(assets[other], asset),
+    );
+    flags |= FACE_FLAG[face];
+    if (shared) {
+      entries[face] = entries[shared];
+      continue;
+    }
     entries[face] = {
       offset: binLength,
       length: asset.bytes.length,
       type: asset.type,
     };
-    flags |= FACE_FLAG[face];
     binLength = align4(binLength + asset.bytes.length);
   }
 
