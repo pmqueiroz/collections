@@ -29,8 +29,8 @@ function field<K extends string>(
 
 export const FIT_FIELDS: NumericField<keyof Fit>[] = [
   field("s", "Scale", 0.3, 3, 0.01),
-  field("x", "Offset X %", -60, 60, 0.5),
-  field("y", "Offset Y %", -60, 60, 0.5),
+  field("x", "Offset X %", -200, 200, 0.5),
+  field("y", "Offset Y %", -200, 200, 0.5),
   field("r", "Rotate °", -180, 180, 0.5),
 ];
 

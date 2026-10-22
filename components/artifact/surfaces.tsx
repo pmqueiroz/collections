@@ -1,5 +1,5 @@
 import Image from "next/image";
-import type { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, type ReactNode, useState } from "react";
 import { cx } from "../ui/cx";
 import { fitTransform } from "./geometry";
 import type { Fit } from "./types";
@@ -69,6 +69,41 @@ export function FaceImage({
   return (
     <>
       <div className="absolute inset-0" style={{ background: backing }} />
+      <FittedImage src={src} fit={fit} />
+    </>
+  );
+}
+
+function coverSize(aspect: number): CSSProperties {
+  return {
+    left: "50%",
+    top: "50%",
+    right: "auto",
+    bottom: "auto",
+    width: `max(100cqw, ${aspect} * 100cqh)`,
+    height: `max(100cqh, 100cqw / ${aspect})`,
+    maxWidth: "none",
+    translate: "-50% -50%",
+  };
+}
+
+export function FittedImage({
+  src,
+  fit,
+  className,
+}: {
+  src: string;
+  fit?: Partial<Fit>;
+  className?: string;
+}) {
+  const [natural, setNatural] = useState<{ src: string; aspect: number }>();
+  const aspect = natural?.src === src ? natural.aspect : null;
+
+  return (
+    <div
+      className={cx("absolute inset-0", className)}
+      style={{ containerType: "size", transform: fitTransform(fit) }}
+    >
       <Image
         src={src}
         alt=""
@@ -76,9 +111,14 @@ export function FaceImage({
         unoptimized
         draggable={false}
         className="object-cover"
-        style={{ transform: fitTransform(fit) }}
+        style={aspect ? coverSize(aspect) : undefined}
+        onLoad={(event) => {
+          const { naturalWidth, naturalHeight } = event.currentTarget;
+          if (naturalWidth && naturalHeight)
+            setNatural({ src, aspect: naturalWidth / naturalHeight });
+        }}
       />
-    </>
+    </div>
   );
 }
 

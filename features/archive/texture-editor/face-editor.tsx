@@ -1,4 +1,3 @@
-import Image from "next/image";
 import {
   type CSSProperties,
   type PointerEvent,
@@ -10,11 +9,11 @@ import {
 import {
   CARD_CHIP_MM,
   clamp,
-  fitTransform,
   perforationMask,
   perforationPitch,
   round2,
 } from "../../../components/artifact/geometry";
+import { FittedImage } from "../../../components/artifact/surfaces";
 import type {
   ArtifactKind,
   Fit,
@@ -174,14 +173,10 @@ export function FaceEditor({
           >
             <div className="absolute inset-0 bg-[linear-gradient(#C2C1BC_1px,transparent_1px),linear-gradient(90deg,#C2C1BC_1px,transparent_1px)] bg-size-[20px_20px] opacity-60" />
             {image ? (
-              <Image
+              <FittedImage
                 src={image}
-                alt=""
-                fill
-                unoptimized
-                draggable={false}
-                className="pointer-events-none object-cover"
-                style={{ transform: fitTransform(fit) }}
+                fit={fit}
+                className="pointer-events-none"
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center mono text-meta text-faint">
