@@ -7,6 +7,13 @@ import { textureFromRelic } from "../texture-editor/texture-file";
 
 const TRAILING_NUMBER = /^(.*?)(\d+)$/;
 
+const FIRST_IDS: Record<ArtifactKind, string> = {
+  coin: "NUM-C-0001",
+  note: "NUM-B-0001",
+  card: "TEL-C-0001",
+  stamp: "PHI-S-0001",
+};
+
 function base64DataUrl(asset: RelicAsset) {
   return `data:${asset.type};base64,${Buffer.from(asset.bytes).toString("base64")}`;
 }
@@ -20,12 +27,12 @@ export async function loadRelicDraft(id: string) {
   );
 }
 
-function nextId(ids: string[]) {
+function nextId(ids: string[], first: string) {
   const numbered = ids
     .map((id) => TRAILING_NUMBER.exec(id))
     .filter((match) => match !== null);
   const last = numbered.at(-1);
-  if (!last) return "";
+  if (!last) return first;
   const [, prefix, digits] = last;
   const highest = Math.max(
     ...numbered
@@ -41,6 +48,7 @@ export function nextIds(catalog: CatalogItem[]) {
       kind,
       nextId(
         catalog.filter((item) => item.kind === kind).map((item) => item.id),
+        FIRST_IDS[kind],
       ),
     ]),
   ) as Record<ArtifactKind, string>;
