@@ -162,6 +162,10 @@ export const ptBR: Dictionary = {
     },
     faceEditor: (side: string) => `editor da face ${side}`,
     dropImage: "solte a imagem",
+    webpUnsupported: {
+      title: "WebP não suportado",
+      body: "Este navegador não codifica WebP, exigido pelas texturas das relíquias. Abra o editor no Chrome, Edge ou Firefox.",
+    },
     status: {
       ingested: (side: string, size: string, kilobytes: number) =>
         `${side} · ${size} px · ${kilobytes} kB · não salvo`,

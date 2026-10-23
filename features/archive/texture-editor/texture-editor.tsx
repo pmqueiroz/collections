@@ -26,7 +26,7 @@ import { KINDS, kindGeometry } from "../catalog";
 import { RELIC_EXTENSION, RELIC_MIME } from "../relic/relic-file";
 import { downloadTemplate } from "./download-template";
 import { FaceEditor } from "./face-editor";
-import { ingestImage } from "./ingest-image";
+import { canEncodeWebp, ingestImage } from "./ingest-image";
 import {
   displayValue,
   FIT_FIELDS,
@@ -63,6 +63,7 @@ export function TextureEditor({
   const [side, setSide] = useState<FaceSide>("obv");
   const [spinning, setSpinning] = useState(false);
   const [status, setStatus] = useState("");
+  const [webp] = useState(canEncodeWebp);
   const dict = useDictionary();
   const text = dict.editor;
   const kindOptions = KINDS.map((value) => ({
@@ -210,13 +211,15 @@ export function TextureEditor({
                   {dict.kind[draft.kind]}
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={download}
-                className={cx(SHEET_BUTTON, "justify-self-end font-semibold")}
-              >
-                {text.download}
-              </button>
+              {webp && (
+                <button
+                  type="button"
+                  onClick={download}
+                  className={cx(SHEET_BUTTON, "justify-self-end font-semibold")}
+                >
+                  {text.download}
+                </button>
+              )}
             </div>
             <div className="flex w-full px-4 pb-2.5">
               <SegmentedControl
@@ -245,203 +248,223 @@ export function TextureEditor({
           </div>
         )}
 
-        <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-1 content-start overflow-y-auto overscroll-contain split:auto-rows-auto split:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)] split:content-stretch split:overflow-hidden">
-          <div className="flex flex-col border-b border-line split:min-h-0 split:overflow-y-auto split:border-b-0 split:border-r">
+        {!webp && (
+          <div
+            role="alert"
+            className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center"
+          >
+            <div className="text-heading font-medium">
+              {text.webpUnsupported.title}
+            </div>
+            <div className="max-w-[360px] text-meta text-muted">
+              {text.webpUnsupported.body}
+            </div>
+          </div>
+        )}
+
+        {webp && (
+          <>
+            <div className="grid min-h-0 flex-1 auto-rows-max grid-cols-1 content-start overflow-y-auto overscroll-contain split:auto-rows-auto split:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)] split:content-stretch split:overflow-hidden">
+              <div className="flex flex-col border-b border-line split:min-h-0 split:overflow-y-auto split:border-b-0 split:border-r">
+                <div
+                  className={cx(
+                    "relative flex-none border-b border-line bg-surface",
+                    compact
+                      ? "h-[min(300px,30vh)]"
+                      : "h-[clamp(200px,36vh,340px)]",
+                  )}
+                >
+                  <Artifact
+                    {...draft}
+                    textured={false}
+                    face=""
+                    code={dict.kind[draft.kind]}
+                    year=""
+                    origin=""
+                    mode="orbit"
+                    rotating={spinning}
+                    flipped={side === "rev"}
+                    zoom={1}
+                    fit={270}
+                  />
+                  <div className="pointer-events-none absolute left-3.5 top-3 mono text-tag text-faint">
+                    {text.live}
+                  </div>
+                  <Button
+                    onClick={() => setSpinning((value) => !value)}
+                    className="absolute bottom-3 right-3"
+                  >
+                    {spinning ? `❚❚ ${text.hold}` : `▶ ${text.orbit}`}
+                  </Button>
+                </div>
+                <div className="flex flex-none flex-col gap-3 px-5 pb-4 pt-3.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <SegmentedControl
+                      size="md"
+                      value={side}
+                      onChange={setSide}
+                      options={(["obv", "rev"] as const).map((value) => ({
+                        value,
+                        label: (
+                          <>
+                            {dict.side[value]}
+                            <span className="text-[9px]">
+                              {draft[value] ? "■" : "□"}
+                            </span>
+                          </>
+                        ),
+                      }))}
+                    />
+                    <div className="ml-auto flex flex-wrap gap-1.5">
+                      <label className={cx(buttonClass(), "box-border")}>
+                        {text.image}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={onFileInput}
+                          className="hidden"
+                        />
+                      </label>
+                      <Button
+                        onClick={() =>
+                          setDraft((current) => ({ ...current, [side]: "" }))
+                        }
+                        className={image ? "text-ink" : "text-faint"}
+                      >
+                        {text.remove}
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          downloadTemplate(
+                            draft.kind,
+                            draft.geo,
+                            side,
+                            `${dict.kind[draft.kind]} · ${dict.side[side]}`,
+                          )
+                        }
+                      >
+                        {text.template} ↓
+                      </Button>
+                    </div>
+                  </div>
+                  <FaceEditor
+                    kind={draft.kind}
+                    geo={draft.geo}
+                    image={image}
+                    fit={fit}
+                    sideLabel={sideLabel}
+                    hint={compact ? text.hintTouch : text.hintPointer}
+                    onFit={setFit}
+                    onFile={ingest}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-[22px] px-5 pb-6 pt-3.5 split:min-h-0 split:overflow-y-auto">
+                <div className="flex flex-col">
+                  <SectionLabel className="pb-2">
+                    {text.fit} · {sideLabel}
+                  </SectionLabel>
+                  {FIT_FIELDS.map((field) => (
+                    <RangeField
+                      key={field.key}
+                      label={text.fitField[field.key]}
+                      min={field.min}
+                      max={field.max}
+                      step={field.step}
+                      value={displayValue(fit[field.key], field.step)}
+                      onChange={(value) => setFit({ [field.key]: value })}
+                    />
+                  ))}
+                </div>
+                <div className="flex flex-col">
+                  <SectionLabel className="pb-2">
+                    {text.mesh} · {dict.kind[draft.kind]}
+                  </SectionLabel>
+                  {GEOMETRY_FIELDS[draft.kind].map((field) => (
+                    <RangeField
+                      key={field.key}
+                      label={text.geometryField[field.key]}
+                      min={field.min}
+                      max={field.max}
+                      step={field.step}
+                      value={displayValue(draft.geo[field.key], field.step)}
+                      onChange={(value) => setGeo(field.key, value)}
+                    />
+                  ))}
+                  {OPTION_FIELDS[draft.kind].map((option) => (
+                    <div
+                      key={option.key}
+                      className="grid h-12 grid-cols-[92px_minmax(0,1fr)] items-center gap-3 border-b border-line regular:h-9"
+                    >
+                      <div className="mono text-tag uppercase text-muted">
+                        {text.option[option.key]}
+                      </div>
+                      {option.key === "edge" ? (
+                        <SegmentedControl
+                          className="justify-self-start"
+                          options={option.choices.map((choice) => ({
+                            value: choice.value,
+                            label: text.choice[choice.label],
+                          }))}
+                          value={draft.geo.edge ?? "reeded"}
+                          onChange={(value) => setGeo("edge", value)}
+                        />
+                      ) : (
+                        <SegmentedControl
+                          className="justify-self-start"
+                          options={option.choices.map((choice) => ({
+                            value: choice.value,
+                            label: text.choice[choice.label],
+                          }))}
+                          value={draft.geo.chip !== false}
+                          onChange={(value) => setGeo("chip", value)}
+                        />
+                      )}
+                    </div>
+                  ))}
+                  <div className="flex gap-1.5 pt-3">
+                    <Button
+                      onClick={() =>
+                        setDraft((current) => ({
+                          ...current,
+                          geo: kindGeometry(current.kind),
+                        }))
+                      }
+                    >
+                      {text.meshDefaults}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div
               className={cx(
-                "relative flex-none border-b border-line bg-surface",
-                compact ? "h-[min(300px,30vh)]" : "h-[clamp(200px,36vh,340px)]",
+                "flex flex-none items-center gap-2 border-t border-line",
+                compact ? "min-h-12 px-4 pb-safe" : "px-5 py-3",
               )}
             >
-              <Artifact
-                {...draft}
-                textured={false}
-                face=""
-                code={dict.kind[draft.kind]}
-                year=""
-                origin=""
-                mode="orbit"
-                rotating={spinning}
-                flipped={side === "rev"}
-                zoom={1}
-                fit={270}
-              />
-              <div className="pointer-events-none absolute left-3.5 top-3 mono text-tag text-faint">
-                {text.live}
+              <div className="truncate whitespace-nowrap mono text-meta text-faint">
+                {statusText}
               </div>
-              <Button
-                onClick={() => setSpinning((value) => !value)}
-                className="absolute bottom-3 right-3"
-              >
-                {spinning ? `❚❚ ${text.hold}` : `▶ ${text.orbit}`}
-              </Button>
-            </div>
-            <div className="flex flex-none flex-col gap-3 px-5 pb-4 pt-3.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <SegmentedControl
-                  size="md"
-                  value={side}
-                  onChange={setSide}
-                  options={(["obv", "rev"] as const).map((value) => ({
-                    value,
-                    label: (
-                      <>
-                        {dict.side[value]}
-                        <span className="text-[9px]">
-                          {draft[value] ? "■" : "□"}
-                        </span>
-                      </>
-                    ),
-                  }))}
-                />
-                <div className="ml-auto flex flex-wrap gap-1.5">
-                  <label className={cx(buttonClass(), "box-border")}>
-                    {text.image}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={onFileInput}
-                      className="hidden"
-                    />
-                  </label>
-                  <Button
-                    onClick={() =>
-                      setDraft((current) => ({ ...current, [side]: "" }))
-                    }
-                    className={image ? "text-ink" : "text-faint"}
-                  >
-                    {text.remove}
-                  </Button>
-                  <Button
-                    onClick={() =>
-                      downloadTemplate(
-                        draft.kind,
-                        draft.geo,
-                        side,
-                        `${dict.kind[draft.kind]} · ${dict.side[side]}`,
-                      )
-                    }
-                  >
-                    {text.template} ↓
-                  </Button>
-                </div>
-              </div>
-              <FaceEditor
-                kind={draft.kind}
-                geo={draft.geo}
-                image={image}
-                fit={fit}
-                sideLabel={sideLabel}
-                hint={compact ? text.hintTouch : text.hintPointer}
-                onFit={setFit}
-                onFile={ingest}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-[22px] px-5 pb-6 pt-3.5 split:min-h-0 split:overflow-y-auto">
-            <div className="flex flex-col">
-              <SectionLabel className="pb-2">
-                {text.fit} · {sideLabel}
-              </SectionLabel>
-              {FIT_FIELDS.map((field) => (
-                <RangeField
-                  key={field.key}
-                  label={text.fitField[field.key]}
-                  min={field.min}
-                  max={field.max}
-                  step={field.step}
-                  value={displayValue(fit[field.key], field.step)}
-                  onChange={(value) => setFit({ [field.key]: value })}
-                />
-              ))}
-            </div>
-            <div className="flex flex-col">
-              <SectionLabel className="pb-2">
-                {text.mesh} · {dict.kind[draft.kind]}
-              </SectionLabel>
-              {GEOMETRY_FIELDS[draft.kind].map((field) => (
-                <RangeField
-                  key={field.key}
-                  label={text.geometryField[field.key]}
-                  min={field.min}
-                  max={field.max}
-                  step={field.step}
-                  value={displayValue(draft.geo[field.key], field.step)}
-                  onChange={(value) => setGeo(field.key, value)}
-                />
-              ))}
-              {OPTION_FIELDS[draft.kind].map((option) => (
-                <div
-                  key={option.key}
-                  className="grid h-12 grid-cols-[92px_minmax(0,1fr)] items-center gap-3 border-b border-line regular:h-9"
-                >
-                  <div className="mono text-tag uppercase text-muted">
-                    {text.option[option.key]}
-                  </div>
-                  {option.key === "edge" ? (
-                    <SegmentedControl
-                      className="justify-self-start"
-                      options={option.choices.map((choice) => ({
-                        value: choice.value,
-                        label: text.choice[choice.label],
-                      }))}
-                      value={draft.geo.edge ?? "reeded"}
-                      onChange={(value) => setGeo("edge", value)}
-                    />
-                  ) : (
-                    <SegmentedControl
-                      className="justify-self-start"
-                      options={option.choices.map((choice) => ({
-                        value: choice.value,
-                        label: text.choice[choice.label],
-                      }))}
-                      value={draft.geo.chip !== false}
-                      onChange={(value) => setGeo("chip", value)}
-                    />
-                  )}
-                </div>
-              ))}
-              <div className="flex gap-1.5 pt-3">
-                <Button
-                  onClick={() =>
-                    setDraft((current) => ({
-                      ...current,
-                      geo: kindGeometry(current.kind),
-                    }))
-                  }
-                >
-                  {text.meshDefaults}
+              <div className="ml-auto flex gap-1.5">
+                {openButton}
+                <Button size="adaptive" onClick={clear}>
+                  {text.clear}
                 </Button>
+                {!compact && (
+                  <>
+                    <Button onClick={onClose}>{text.close}</Button>
+                    <Button variant="primary" onClick={download}>
+                      {text.download}
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
-          </div>
-        </div>
-
-        <div
-          className={cx(
-            "flex flex-none items-center gap-2 border-t border-line",
-            compact ? "min-h-12 px-4 pb-safe" : "px-5 py-3",
-          )}
-        >
-          <div className="truncate whitespace-nowrap mono text-meta text-faint">
-            {statusText}
-          </div>
-          <div className="ml-auto flex gap-1.5">
-            {openButton}
-            <Button size="adaptive" onClick={clear}>
-              {text.clear}
-            </Button>
-            {!compact && (
-              <>
-                <Button onClick={onClose}>{text.close}</Button>
-                <Button variant="primary" onClick={download}>
-                  {text.download}
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

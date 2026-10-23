@@ -160,6 +160,10 @@ export const en = {
     },
     faceEditor: (side: string) => `${side} face editor`,
     dropImage: "drop image",
+    webpUnsupported: {
+      title: "WebP not supported",
+      body: "This browser can't encode WebP, which relic textures require. Open the editor in Chrome, Edge or Firefox.",
+    },
     status: {
       ingested: (side: string, size: string, kilobytes: number) =>
         `${side} · ${size} px · ${kilobytes} kB · unsaved`,
