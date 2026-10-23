@@ -154,7 +154,9 @@ export function DetailDrawer({
           </div>
         ) : (
           <div className="flex flex-none items-center gap-1.5 border-b border-line px-7 py-3.5">
-            <div className="mr-auto mono text-cell">{item.id}</div>
+            <div className="mr-auto flex h-[30px] items-center mono text-cell">
+              {item.id}
+            </div>
             <Button onClick={onPrev}>↑ {text.prev}</Button>
             <Button onClick={onNext}>↓ {text.next}</Button>
             <Button onClick={onClose}>{text.close} · Esc</Button>
