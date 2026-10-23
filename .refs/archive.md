@@ -91,6 +91,9 @@ rewritten as React + Tailwind.
 - **Scroll lock**: `ArchiveIndex` calls `useScrollLock(open)`, so the
   index behind the drawer cannot scroll while the drawer is open (desktop
   and phone). The drawer body scrolls on its own (`overscroll-contain`).
+- **Backdrop**: a fixed `bg-ink/16` scrim (same tint as the texture
+  editor's) fades in behind the drawer on desktop and phone; tapping it
+  closes the drawer.
 - **Drawer header height** must match the desktop `Header` so their bottom
   borders line up: both use `py-3.5` around a 30px row (the header's
   tallest controls are the `lg` segmented controls and the 30px search
