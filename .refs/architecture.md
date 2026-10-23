@@ -45,6 +45,8 @@ Code is the truth. This file explains the *why* behind the shape it takes.
   `label` for the `<fieldset>` group name), `SectionLabel`,
   `RangeField` (taller rows below `regular:`), `useMediaQuery`, `useInView`
   (IntersectionObserver visibility of a ref, with `rootMargin`),
+  `DevLink` / `devButtonClass` (yellow dev-only link, built on
+  `buttonShape(size)` from `button.tsx`),
   `useScrollLock` (sets `overflow: hidden` on `<html>` while `locked`;
   reserves the gutter with `scrollbar-gutter: stable` only when the page
   actually overflows, so the layout does not jump; restores the previous
@@ -62,13 +64,16 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 - `public/` — static assets served from `/` (empty for now).
 
 Features import from `components/`, never the other way around.
-- `next.config.ts` — `cacheComponents: true`, `partialPrefetching: true`,
-  Tailwind Turbopack loader.
+- `next.config.ts` — exports a phase function: `cacheComponents: true`,
+  `partialPrefetching: true`, Tailwind Turbopack loader, and
+  `pageExtensions` that include `dev.tsx`/`dev.ts`/… only under
+  `next dev` (see [conventions.md](./conventions.md#dev-only-code)).
 
 ## Design tokens
 
 `app/globals.css` defines the palette (`paper`, `surface`, `raised`, `line`,
-`ink`, `ink-hover`, `muted`, `faint`), a type scale (`text-tag` 10.5px …
+`ink`, `ink-hover`, `muted`, `faint`, plus the yellow `dev`, `dev-hover`,
+`dev-line` reserved for dev-only controls), a type scale (`text-tag` 10.5px …
 `text-display` 28px), tracking (`tracking-ui` −0.02em is the body default,
 `tracking-label`, `tracking-spec`, `tracking-display`), shadows (`float`,
 `modal`) and `ease-drawer`, all as Tailwind `@theme` tokens. The `mono`
@@ -99,7 +104,8 @@ re-adds. It points agents at the version-matched docs in
 ## Known gaps
 
 - Catalog data is `relics/*.relic` read from disk at build time; there is
-  no database, upload endpoint or pack CLI. New relics are committed by hand
-  after downloading them from the texture editor. No env vars or Server
-  Actions.
+  no database or upload endpoint in production. Under `next dev` the relic
+  editor writes `relics/*.relic` through the `saveRelic` Server Action (see
+  [archive.md](./archive.md#relic-editor-dev-only)); the files are then
+  committed by hand. No env vars.
 - No tests yet. Deployment: see [ci-cd.md](./ci-cd.md).

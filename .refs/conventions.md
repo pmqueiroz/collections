@@ -53,6 +53,35 @@ again, extract it to the shared location from the start.
 Consistency is the goal: the same interaction should look and behave the same
 everywhere in the project.
 
+## Dev-only code
+
+Anything that must exist in `next dev` and never in production follows two
+rules, so the production bundle carries none of it:
+
+- **Dev-only routes** are named `page.dev.tsx` (any `*.dev.{tsx,ts,jsx,js}`
+  route file). `next.config.ts` exports a phase function that adds the
+  `dev.*` page extensions only for `PHASE_DEVELOPMENT_SERVER`; `next build`
+  does not see those files as routes, so they and everything only they
+  import are never compiled. Do not use `PageProps<...>` in them: `next
+  typegen` runs outside the dev phase and does not generate their route
+  types, so type `params` by hand.
+- **Dev-only UI inside shared components** is wrapped inline in
+  `process.env.NODE_ENV === "development" && (...)`. Next inlines
+  `NODE_ENV`, so the branch and its imports (e.g. `DevLink`) are removed
+  from the production chunks. Keep the check inline: a shared `DEV`
+  constant from another module is not guaranteed to be folded.
+- Dev-only controls are **yellow** (`DevLink` / `devButtonClass` in
+  `components/ui/dev-link.tsx`, tokens `dev`, `dev-hover`, `dev-line`) so
+  they never pass for real UI. Their copy is English only and not in the
+  dictionaries (the dictionaries ship to production).
+- Server code reachable from a dev route still re-checks `NODE_ENV`
+  (see `saveRelic`) as a second guard.
+
+Verify after touching this: `npm run build`, then grep `.next/static` and
+`.next/server` `*.js` for a dev-only string; only source maps and the
+Tailwind `.bg-dev`/`.border-dev-line` CSS rules (Tailwind scans every source
+file) may mention it.
+
 ## Imports
 
 No import aliases. Every local import is a relative path

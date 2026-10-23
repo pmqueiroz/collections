@@ -123,6 +123,13 @@ manifest without `assets` plus the decoded asset bytes.
   see [archive.md](./archive.md#behavior-rules).
 - **Texture editor**: opens and downloads `.relic` (see
   [archive.md](./archive.md#texture-editor)).
+- **Relic editor** (dev only): reads one relic as a draft
+  (`loadRelicDraft`) and writes `relics/<id>.relic` through `saveRelic`
+  (see [archive.md](./archive.md#relic-editor-dev-only)).
+- **Cache**: `loadCatalog` and `readRelicAsset` are tagged
+  `RELIC_CACHE_TAG` (`"relics"`); `saveRelic` calls `updateTag` on it. Files
+  changed by hand while `next dev` runs are not seen until a save through
+  the editor or a dev server restart.
 
 ## Adding or changing an entry
 
@@ -152,10 +159,10 @@ imported entry has `cond: "VF"`, `tex: false`, the default model for its
 kind, and `"—"` for every other spec field. The sheet's `UAE` was corrected
 to ISO `ARE`. Those placeholders are meant to be corrected per entry.
 
-There is no pack CLI: edit an
-entry by opening its relic in the texture editor and downloading it back over
-`relics/<id>.relic`. A brand-new entry needs its catalog fields (`id`,
-`title`, `specs`, …) in the manifest; the editor preserves but does not edit
-them, so a blank editor export is rejected by the loader until they exist.
+Edit or create entries with the dev-only relic editor (`next dev`, yellow
+**Edit** in the detail drawer, **+ New entry** in the header). It writes
+`relics/<id>.relic` directly; commit the file afterwards. The texture editor's
+download still works, but it preserves rather than edits catalog fields, so a
+blank texture-editor export is rejected by the loader until they exist.
 
 `.gitattributes` marks `*.relic` as binary.

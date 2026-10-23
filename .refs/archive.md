@@ -40,6 +40,9 @@ rewritten as React + Tailwind.
 - `features/archive/texture-editor/` — modal (`texture-editor.tsx`), 2D
   face editor (`face-editor.tsx`), field schema (`schema.ts`), image
   ingest, 600 dpi template export, relic open/download (`texture-file.ts`).
+- `features/archive/relic-editor/` + `app/[lang]/relics/[id]/edit/page.dev.tsx`,
+  `app/[lang]/relics/new/page.dev.tsx` — dev-only relic editor, see
+  [Relic editor](#relic-editor-dev-only).
 - `features/archive/artifact-config.ts` — `ArtifactModel` (mesh, fits),
   `ArtifactConfig` (model + face images), `blankConfig(geo)`,
   `relicAssetUrl(id, face)`, and `artifactProps(item, config?)` which maps
@@ -236,6 +239,56 @@ mesh and faces, and downloads the result as a `.relic` to commit.
 
 There is no auth. The cookie session that gated local saves was removed
 with local storage; add a real write guard when an upload endpoint exists.
+
+`encodeTexture(draft)` and `textureFromRelic(contents, toDataUrl)` in
+`texture-file.ts` are the shared halves of download/open; the relic editor
+uses them too.
+
+## Relic editor (dev only)
+
+Edits a `.relic` file's catalog fields and writes it to `relics/` from the
+browser. It only exists under `next dev`; production builds contain neither
+the routes nor the buttons (see
+[conventions.md](./conventions.md#dev-only-code)).
+
+- **Entry points** (yellow `DevLink`s): **Edit** in the detail drawer
+  header (desktop before Prev; phone at the right of the id) →
+  `/<lang>/relics/<id>/edit`; **+ New entry** in the desktop header and a
+  `+` tile in the compact header → `/<lang>/relics/new`.
+- **Routes**: `app/[lang]/relics/[id]/edit/page.dev.tsx` (unknown id →
+  `notFound()`; `instant = false`, since it reads `params` outside
+  `Suspense` and a blocking dev page is fine) and
+  `app/[lang]/relics/new/page.dev.tsx`. The static `new` segment wins over
+  `[id]`; in production `/…/relics/new` falls through to `[id]` and 404s.
+- **Draft**: the same `TextureDraft` the texture editor uses.
+  `loadRelicDraft(id)` (`relic-store.ts`, `'use cache'`, tagged) turns the
+  relic into a draft with base64 data URLs on the server. A new entry
+  starts from `blankEntry(kind, id)` (`entry-draft.ts`): empty text fields,
+  unknown year, amount 1, `VF`, `tex: false`, every spec `"—"`.
+- **Form** (`relic-editor.tsx`): kind (locked when editing an existing
+  entry), `id`, `title`, `origin`, `iso`, `face`, year (empty = unknown),
+  amount, condition, `tex`, and the kind's `SPEC_FIELDS`. Labels are the
+  manifest keys. On a new entry, switching kind swaps specs to the new
+  kind's fields (keeping matching values) and, when the id is empty or
+  still the suggestion, replaces it with that kind's suggestion
+  (`nextIds`: highest trailing number among that kind's ids + 1, same
+  prefix and padding).
+- **Textures and mesh**: the preview is a live `Artifact` of the draft;
+  "Texture editor…" opens the existing `TextureEditor` modal on the same
+  draft. Its updates are applied with the editor's `meta` kept, so its
+  **Clear** and **Open…** change faces/mesh but never wipe the form.
+- **Save** (button or Ctrl/⌘+S): `encodeTexture` → `FormData` →
+  `saveRelic` Server Action (`save-relic.ts`). The action refuses outside
+  development, decodes and validates with the strict `parseCatalogEntry`
+  (its error message is shown in the status), requires an id matching
+  `^[A-Za-z0-9][A-Za-z0-9._-]*$` (it becomes a file name), refuses an id
+  that already belongs to another entry, writes `relics/<id>.relic`,
+  deletes the old file when the id was changed, and calls
+  `updateTag("relics")`. The client then pushes to the relic's share page.
+- **Activity**: with Cache Components, Next keeps visited pages mounted
+  but hidden. The form is keyed on `useRouter().bfcacheId`, so a link or
+  push navigation always starts from the file on disk, while browser
+  Back/Forward keeps an unsaved draft.
 
 ## Artifact viewer (`components/artifact/`)
 
