@@ -68,20 +68,24 @@ export function FittedImage({
       className={cx("absolute inset-0", className)}
       style={{ containerType: "size", transform: fitTransform(fit) }}
     >
-      <Image
-        src={src}
-        alt=""
-        fill
-        unoptimized
-        draggable={false}
-        className="object-cover"
+      <div
+        className="absolute inset-0"
         style={aspect ? coverSize(aspect) : undefined}
-        onLoad={(event) => {
-          const { naturalWidth, naturalHeight } = event.currentTarget;
-          if (naturalWidth && naturalHeight)
-            setNatural({ src, aspect: naturalWidth / naturalHeight });
-        }}
-      />
+      >
+        <Image
+          src={src}
+          alt=""
+          fill
+          unoptimized
+          draggable={false}
+          className="object-cover"
+          onLoad={(event) => {
+            const { naturalWidth, naturalHeight } = event.currentTarget;
+            if (naturalWidth && naturalHeight)
+              setNatural({ src, aspect: naturalWidth / naturalHeight });
+          }}
+        />
+      </div>
     </div>
   );
 }
