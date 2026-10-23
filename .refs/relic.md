@@ -160,7 +160,7 @@ kind, and `"—"` for every other spec field. The sheet's `UAE` was corrected
 to ISO `ARE`. Those placeholders are meant to be corrected per entry.
 
 Edit or create entries with the dev-only relic editor (`next dev`, yellow
-**Edit** in the detail drawer, **+ New entry** in the header). It writes
+**Edit** / **Clone** in the detail drawer, **+ New entry** in the header). It writes
 `relics/<id>.relic` directly; commit the file afterwards. The texture editor's
 download still works, but it preserves rather than edits catalog fields, so a
 blank texture-editor export is rejected by the loader until they exist.

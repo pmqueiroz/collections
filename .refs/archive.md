@@ -41,6 +41,7 @@ rewritten as React + Tailwind.
   face editor (`face-editor.tsx`), field schema (`schema.ts`), image
   ingest, 600 dpi template export, relic open/download (`texture-file.ts`).
 - `features/archive/relic-editor/` + `app/[lang]/relics/[id]/edit/page.dev.tsx`,
+  `app/[lang]/relics/[id]/clone/page.dev.tsx`,
   `app/[lang]/relics/new/page.dev.tsx` — dev-only relic editor, see
   [Relic editor](#relic-editor-dev-only).
 - `features/archive/artifact-config.ts` — `ArtifactModel` (mesh, fits),
@@ -232,7 +233,8 @@ mesh and faces, and downloads the result as a `.relic` to commit.
 - **Open…** reads a `.relic`: asset bytes become in-memory data URLs so the
   face editor and template export work unchanged. Decode errors show in the
   status bar as `<file> · <reason>`.
-- **Download** writes `<id>.relic` (or `<kind>.relic` for a blank draft):
+- **Download** (the primary action unless a `save` prop overrides it)
+  writes `<id>.relic` (or `<kind>.relic` for a blank draft):
   data URLs go back to raw bytes, manifest is `meta` + `kind` + `model`.
 - The preview renders the draft untextured (`textured={false}`), so faces
   without an image show clay instead of the catalog "scan" placeholder.
@@ -251,20 +253,25 @@ browser. It only exists under `next dev`; production builds contain neither
 the routes nor the buttons (see
 [conventions.md](./conventions.md#dev-only-code)).
 
-- **Entry points** (yellow `DevLink`s): **Edit** in the detail drawer
-  header (desktop before Prev; phone at the right of the id) →
-  `/<lang>/relics/<id>/edit`; **+ New entry** in the desktop header and a
+- **Entry points** (yellow `DevLink`s): **Clone** and **Edit** in the
+  detail drawer header (desktop before Prev; phone at the right of the id)
+  → `/<lang>/relics/<id>/clone` and `/<lang>/relics/<id>/edit`; **+ New entry** in the desktop header and a
   `+` tile in the compact header → `/<lang>/relics/new`.
 - **Routes**: `app/[lang]/relics/[id]/edit/page.dev.tsx` (unknown id →
   `notFound()`; `instant = false`, since it reads `params` outside
-  `Suspense` and a blocking dev page is fine) and
+  `Suspense` and a blocking dev page is fine),
+  `app/[lang]/relics/[id]/clone/page.dev.tsx` (same guards) and
   `app/[lang]/relics/new/page.dev.tsx`. The static `new` segment wins over
   `[id]`; in production `/…/relics/new` falls through to `[id]` and 404s.
 - **Draft**: the same `TextureDraft` the texture editor uses.
   `loadRelicDraft(id)` (`relic-store.ts`, `'use cache'`, tagged) turns the
   relic into a draft with base64 data URLs on the server. A new entry
   starts from `blankEntry(kind, id)` (`entry-draft.ts`): empty text fields,
-  unknown year, amount 1, `VF`, `tex: false`, every spec `"—"`.
+  unknown year, amount 1, `VF`, `tex: false`, every spec `"—"`. A clone
+  starts from the source's full draft (fields, faces, mesh) with `meta.id`
+  swapped for that kind's `nextIds` suggestion; it is a new entry
+  (`previousId: null`, kind unlocked) with `cloneOf` set, which only titles
+  the page "Clone <id>" and points Back at the source relic.
 - **Form** (`relic-editor.tsx`): kind (locked when editing an existing
   entry), `id`, `title`, `origin`, `iso`, `face`, year (empty = unknown),
   amount, condition, `tex`, and the kind's `SPEC_FIELDS`. Labels are the
@@ -272,11 +279,16 @@ the routes nor the buttons (see
   kind's fields (keeping matching values) and, when the id is empty or
   still the suggestion, replaces it with that kind's suggestion
   (`nextIds`: highest trailing number among that kind's ids + 1, same
-  prefix and padding).
+  prefix and padding; a kind with no entries yet starts at its
+  `FIRST_IDS` seed: `NUM-C-0001` coin, `NUM-B-0001` note, `TEL-C-0001`
+  card, `PHI-S-0001` stamp).
 - **Textures and mesh**: the preview is a live `Artifact` of the draft;
   "Texture editor…" opens the existing `TextureEditor` modal on the same
   draft. Its updates are applied with the editor's `meta` kept, so its
   **Clear** and **Open…** change faces/mesh but never wipe the form.
+  The modal gets a `save` prop (`{ label, run }`), which replaces its
+  primary **Download** button (footer and compact sheet header) with
+  **Save**: it closes the modal and runs the page's save below.
 - **Save** (button or Ctrl/⌘+S): `encodeTexture` → `FormData` →
   `saveRelic` Server Action (`save-relic.ts`). The action refuses outside
   development, decodes and validates with the strict `parseCatalogEntry`
