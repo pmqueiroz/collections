@@ -12,6 +12,7 @@ import {
   RELIC_MIME,
   type RelicAsset,
   type RelicAssets,
+  type RelicContents,
 } from "../relic/relic-file";
 
 export type TextureDraft = ArtifactConfig & {
@@ -47,11 +48,11 @@ function assetDataUrl(asset: RelicAsset) {
   });
 }
 
-export async function downloadTexture(draft: TextureDraft) {
+export async function encodeTexture(draft: TextureDraft) {
   const assets: RelicAssets = {};
   for (const face of FACES)
     if (draft[face]) assets[face] = await dataUrlAsset(draft[face]);
-  const file = encodeRelic({
+  return encodeRelic({
     manifest: {
       ...draft.meta,
       kind: draft.kind,
@@ -59,6 +60,10 @@ export async function downloadTexture(draft: TextureDraft) {
     },
     assets,
   });
+}
+
+export async function downloadTexture(draft: TextureDraft) {
+  const file = await encodeTexture(draft);
   const url = URL.createObjectURL(new Blob([file], { type: RELIC_MIME }));
   const link = document.createElement("a");
   link.href = url;
@@ -67,10 +72,10 @@ export async function downloadTexture(draft: TextureDraft) {
   URL.revokeObjectURL(url);
 }
 
-export async function openTexture(file: File): Promise<TextureDraft> {
-  const { manifest, assets } = decodeRelic(
-    new Uint8Array(await file.arrayBuffer()),
-  );
+export async function textureFromRelic(
+  { manifest, assets }: RelicContents,
+  toDataUrl: (asset: RelicAsset) => string | Promise<string>,
+): Promise<TextureDraft> {
   const kind = parseKind(manifest.kind);
   if (!kind) throw new Error("unknown kind");
   const { kind: _kind, model, ...meta } = manifest;
@@ -78,7 +83,14 @@ export async function openTexture(file: File): Promise<TextureDraft> {
     kind,
     meta,
     ...parseModel(kind, model),
-    obv: assets.obv ? await assetDataUrl(assets.obv) : "",
-    rev: assets.rev ? await assetDataUrl(assets.rev) : "",
+    obv: assets.obv ? await toDataUrl(assets.obv) : "",
+    rev: assets.rev ? await toDataUrl(assets.rev) : "",
   };
+}
+
+export async function openTexture(file: File): Promise<TextureDraft> {
+  return textureFromRelic(
+    decodeRelic(new Uint8Array(await file.arrayBuffer())),
+    assetDataUrl,
+  );
 }
