@@ -43,7 +43,7 @@ const PREVIEW_HEIGHT = 310;
 export function ArchiveIndex({
   catalog,
   relicId,
-  defaultView = "list",
+  defaultView = "grid",
   rowDensity = "compact",
   orbitRpm = 2,
   dwell = 300,

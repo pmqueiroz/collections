@@ -41,8 +41,8 @@ export function CompactHeader({
   const dict = useDictionary();
   const localeSwitch = useLocaleSwitch();
   const views: { value: View; label: string }[] = [
-    { value: "list", label: dict.header.list },
     { value: "grid", label: dict.header.grid },
+    { value: "list", label: dict.header.list },
   ];
   return (
     <header className="sticky top-0 z-20 border-b border-line pt-safe glass regular:hidden">

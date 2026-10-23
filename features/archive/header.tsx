@@ -53,8 +53,8 @@ export function Header({
   const dict = useDictionary();
   const locale = useLocale();
   const views: { value: View; label: string }[] = [
-    { value: "list", label: dict.header.listView },
     { value: "grid", label: dict.header.gridView },
+    { value: "list", label: dict.header.listView },
   ];
   return (
     <header className="sticky top-0 z-20 hidden border-b border-line bg-paper pt-safe regular:block">
