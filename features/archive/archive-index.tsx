@@ -8,6 +8,7 @@ import {
   FINE_HOVER_QUERY,
   useMediaQuery,
 } from "../../components/ui/use-media-query";
+import { useScrollLock } from "../../components/ui/use-scroll-lock";
 import { useDictionary } from "../../i18n/locale-provider";
 import {
   type CatalogItem,
@@ -65,6 +66,7 @@ export function ArchiveIndex({
   const compact = useMediaQuery(COMPACT_QUERY);
   const fineHover = useMediaQuery(FINE_HOVER_QUERY, true);
   const dict = useDictionary();
+  useScrollLock(open);
 
   const counts = useMemo(() => domainCounts(catalog), [catalog]);
   const items = useMemo(
