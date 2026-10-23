@@ -47,6 +47,7 @@ type TextureEditorProps = {
   draft: TextureDraft;
   onDraft: Dispatch<SetStateAction<TextureDraft>>;
   onClose: () => void;
+  save?: { label: string; run: () => void };
 };
 
 const FIT_KEY: Record<FaceSide, "fo" | "fr"> = { obv: "fo", rev: "fr" };
@@ -59,6 +60,7 @@ export function TextureEditor({
   draft,
   onDraft: setDraft,
   onClose,
+  save,
 }: TextureEditorProps) {
   const [side, setSide] = useState<FaceSide>("obv");
   const [spinning, setSpinning] = useState(false);
@@ -149,6 +151,8 @@ export function TextureEditor({
     }
   };
 
+  const primary = save ?? { label: text.download, run: download };
+
   const clear = () => {
     setDraft(blankTexture(draft.kind));
     setStatus(text.status.cleared);
@@ -214,10 +218,10 @@ export function TextureEditor({
               {webp && (
                 <button
                   type="button"
-                  onClick={download}
+                  onClick={primary.run}
                   className={cx(SHEET_BUTTON, "justify-self-end font-semibold")}
                 >
-                  {text.download}
+                  {primary.label}
                 </button>
               )}
             </div>
@@ -456,8 +460,8 @@ export function TextureEditor({
                 {!compact && (
                   <>
                     <Button onClick={onClose}>{text.close}</Button>
-                    <Button variant="primary" onClick={download}>
-                      {text.download}
+                    <Button variant="primary" onClick={primary.run}>
+                      {primary.label}
                     </Button>
                   </>
                 )}

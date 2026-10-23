@@ -344,6 +344,13 @@ function RelicEditorForm({
           draft={draft}
           onDraft={setTexture}
           onClose={() => setEditingTexture(false)}
+          save={{
+            label: "Save",
+            run: () => {
+              setEditingTexture(false);
+              save();
+            },
+          }}
         />
       )}
     </div>
