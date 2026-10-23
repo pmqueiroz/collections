@@ -9,6 +9,7 @@ export default function config(phase: string): NextConfig {
   return {
     cacheComponents: true,
     partialPrefetching: true,
+    allowedDevOrigins: ["192.168.*.*"],
     pageExtensions: dev
       ? [...DEV_PAGE_EXTENSIONS, ...PAGE_EXTENSIONS]
       : PAGE_EXTENSIONS,
