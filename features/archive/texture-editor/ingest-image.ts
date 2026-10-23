@@ -1,5 +1,6 @@
-const MAX_EDGE = 1400;
-const QUALITY = 0.88;
+const MAX_EDGE = 1024;
+const QUALITY = 0.75;
+const WEBP = "image/webp";
 
 export type IngestedImage = {
   dataUrl: string;
@@ -7,6 +8,13 @@ export type IngestedImage = {
   height: number;
   kilobytes: number;
 };
+
+export function canEncodeWebp() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1;
+  canvas.height = 1;
+  return canvas.toDataURL(WEBP).startsWith(`data:${WEBP}`);
+}
 
 function loadImage(url: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -32,10 +40,9 @@ export async function ingestImage(file: File): Promise<IngestedImage | null> {
     canvas
       .getContext("2d")
       ?.drawImage(image, 0, 0, canvas.width, canvas.height);
-    let dataUrl = canvas.toDataURL("image/webp", QUALITY);
-    if (!dataUrl.startsWith("data:image/webp")) {
-      const fallback = file.type === "image/png" ? "image/png" : "image/jpeg";
-      dataUrl = canvas.toDataURL(fallback, QUALITY);
+    const dataUrl = canvas.toDataURL(WEBP, QUALITY);
+    if (!dataUrl.startsWith(`data:${WEBP}`)) {
+      throw new Error("webp encoding unsupported");
     }
     return {
       dataUrl,
