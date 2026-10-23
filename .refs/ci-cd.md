@@ -15,7 +15,7 @@ so bumping the file bumps CI.
 - **`deploy`** — only on push to `main`, needs `checks`. Installs the pinned
   Vercel CLI (`vercel@65.1.0`) and runs the prebuilt flow:
   `vercel pull --yes --environment=production` → `vercel build --prod` →
-  `vercel deploy --prebuilt --prod`. Runs in the GitHub `production`
+  `vercel deploy --prebuilt --prod --archive=tgz`. Runs in the GitHub `production`
   environment with URL https://collections.pmqueiroz.dev.
 
 ## Vercel project

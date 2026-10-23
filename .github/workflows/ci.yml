@@ -51,4 +51,4 @@ jobs:
       - run: npm install --global vercel@65.1.0
       - run: vercel pull --yes --environment=production
       - run: vercel build --prod
-      - run: vercel deploy --prebuilt --prod
+      - run: vercel deploy --prebuilt --prod --archive=tgz
