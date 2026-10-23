@@ -93,6 +93,8 @@ either is a decoder change; for zstd the spec must first say whether
 - **Buffer offsets** are `assets.<face>`: `offset` is relative to the start of
   BUFF, must be 4-aligned and in range. `type` must be `image/webp`,
   `image/png` or `image/jpeg` (KTX2 is not accepted: CSS can't display it).
+  The texture editor only ever produces `image/webp`; PNG/JPEG stay valid
+  for the decoder, and an opened relic's existing bytes are kept as-is.
   `encodeRelic` writes `assets` itself; callers never set it.
 - **Shared faces**: when `obv` and `rev` carry byte-identical images (one
   scan used for both sides), `encodeRelic` writes the bytes once and both

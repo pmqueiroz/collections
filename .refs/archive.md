@@ -211,12 +211,19 @@ mesh and faces, and downloads the result as a `.relic` to commit.
   `ArtifactConfig` + `kind` + `meta` (every manifest field except `kind`,
   `model` and `assets`, carried through untouched).
 - **Faces**: per side upload / drag-drop an image, pan by dragging, scale
-  by wheel, or use the Fit sliders. Images are downscaled to 1400px on the
-  long edge and kept as WebP (PNG/JPEG fallback) data URLs. The image keeps
+  by wheel, or use the Fit sliders. Images are downscaled to 1024px on the
+  long edge and re-encoded as WebP at quality 0.75 (textures don't need
+  more); the canvas re-encode also drops EXIF/GPS/ICC metadata. The image keeps
   its own aspect ratio, so a scan holding both sides can be panned to one
   half per face (see **Face images** under [Artifact viewer](#artifact-viewer-componentsartifact)); uploading that same scan
   to both sides is stored once in the relic. "Template ↓"
   exports a 600 dpi PNG print/scan template for the current side and mesh.
+- **WebP required**: there is no PNG/JPEG fallback. On mount the editor
+  probes `canEncodeWebp()` (1×1 canvas `toDataURL("image/webp")`); when the
+  browser can't encode WebP the whole editor body, footer and the compact
+  Download button are replaced by a notice (`editor.webpUnsupported`) telling
+  the user to switch to Chrome, Edge or Firefox. `ingestImage` also throws
+  if WebP comes back as anything else.
 - **Mesh defaults** resets only the mesh; **Clear** resets the whole draft
   for the current kind, `meta` included (detaches it from its entry).
 - **Open…** reads a `.relic`: asset bytes become in-memory data URLs so the
