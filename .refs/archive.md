@@ -84,6 +84,11 @@ rewritten as React + Tailwind.
   `Esc` close, arrows prev/next (wrap around the *filtered* list), `F`
   flip, `Space` pause/resume orbit. Keys are ignored while focus is in an
   input, except `Esc`.
+- **Drawer header height** must match the desktop `Header` so their bottom
+  borders line up: both use `py-3.5` around a 30px row (the header's
+  tallest controls are the `lg` segmented controls and the 30px search
+  input; the drawer's id cell is pinned to `h-[30px]` because its buttons
+  are only 28px). Change one, change the other.
 - **Share links**: the open detail lives at `/<lang>/relics/<id>`
   (`relicPagePath(locale, id)` in `artifact-config.ts`), so the address
   bar is always a shareable link.
