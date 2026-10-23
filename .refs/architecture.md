@@ -30,7 +30,10 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 ## Layout
 
 - `app/` — App Router root. `[lang]/layout.tsx` is the root layout (Geist
-  and Geist Mono via `next/font/google`, localized metadata, `LocaleProvider`),
+  and Geist Mono via `next/font/google`, localized metadata, `LocaleProvider`;
+  `<body suppressHydrationWarning>` ignores attributes that browser extensions
+  inject, e.g. ColorZilla's `cz-shortcut-listen`; it covers only that one
+  element's attributes, not its children),
   `[lang]/page.tsx` renders the archive index at `/<lang>`, `globals.css`
   holds the design tokens. Every page is under `[lang]`; see
   [i18n.md](./i18n.md). Icons use the
@@ -68,6 +71,8 @@ Features import from `components/`, never the other way around.
   `partialPrefetching: true`, Tailwind Turbopack loader, and
   `pageExtensions` that include `dev.tsx`/`dev.ts`/… only under
   `next dev` (see [conventions.md](./conventions.md#dev-only-code)).
+  `allowedDevOrigins: ["192.168.*.*"]` lets LAN devices (phone testing)
+  load dev resources like `/_next/hmr`; `*` matches one hostname label.
 
 ## Design tokens
 
