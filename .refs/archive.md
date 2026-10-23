@@ -285,6 +285,18 @@ the routes nor the buttons (see
   detail drawer header (desktop before Prev; phone at the right of the id)
   → `/<lang>/relics/<id>/clone` and `/<lang>/relics/<id>/edit`; **+ New entry** in the desktop header and a
   `+` tile in the compact header → `/<lang>/relics/new`.
+- **Index state round-trip**: the editor pages keep the index query string
+  (see **Index URL state**) so Back and Save land on the same tab, sort,
+  search and view. `DevLink` is built on `SearchLink`
+  (`components/ui/search-link.tsx`), which appends the *current*
+  `location.search` at click time: the index writes the query with
+  `replaceState`, which Next's router does not see, so the `href` rendered
+  from props would be stale. A plain left click is intercepted and pushed
+  through the router; modified and middle clicks get the `href` rewritten
+  on the anchor so a new tab carries the query too. The editor's **Back**
+  is a `SearchLink` as well, and Save pushes
+  `withCurrentSearch(relicPagePath(…))`. A control change made less than
+  250ms before clicking (the write debounce) is not carried.
 - **Routes**: `app/[lang]/relics/[id]/edit/page.dev.tsx` (unknown id →
   `notFound()`; `instant = false`, since it reads `params` outside
   `Suspense` and a blocking dev page is fine),
@@ -324,7 +336,7 @@ the routes nor the buttons (see
   `^[A-Za-z0-9][A-Za-z0-9._-]*$` (it becomes a file name), refuses an id
   that already belongs to another entry, writes `relics/<id>.relic`,
   deletes the old file when the id was changed, and calls
-  `updateTag("relics")`. The client then pushes to the relic's share page.
+  `updateTag("relics")`. The client then pushes to the relic's share page, keeping the query string.
 - **Activity**: with Cache Components, Next keeps visited pages mounted
   but hidden. The form is keyed on `useRouter().bfcacheId`, so a link or
   push navigation always starts from the file on disk, while browser
