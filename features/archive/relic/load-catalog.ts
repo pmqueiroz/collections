@@ -1,13 +1,15 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import { cacheTag } from "next/cache";
 import type { FaceSide } from "../../../components/artifact/types";
 import type { CatalogItem } from "../catalog";
 import { parseCatalogEntry } from "./manifest";
 import { decodeRelic, RELIC_EXTENSION, type RelicAsset } from "./relic-file";
 
-const RELIC_DIR = path.join(process.cwd(), "relics");
+export const RELIC_DIR = path.join(process.cwd(), "relics");
+export const RELIC_CACHE_TAG = "relics";
 
-async function readRelic(name: string) {
+export async function readRelic(name: string) {
   const file = await readFile(path.join(RELIC_DIR, name));
   try {
     return decodeRelic(new Uint8Array(file));
@@ -18,6 +20,7 @@ async function readRelic(name: string) {
 
 export async function loadCatalog(): Promise<CatalogItem[]> {
   "use cache";
+  cacheTag(RELIC_CACHE_TAG);
   const names = (await readdir(RELIC_DIR)).filter((name) =>
     name.endsWith(RELIC_EXTENSION),
   );
@@ -44,6 +47,7 @@ export async function readRelicAsset(
   face: FaceSide,
 ): Promise<RelicAsset | null> {
   "use cache";
+  cacheTag(RELIC_CACHE_TAG);
   const items = await loadCatalog();
   if (!items.some((item) => item.id === id)) return null;
   const { assets } = await readRelic(`${id}${RELIC_EXTENSION}`);
