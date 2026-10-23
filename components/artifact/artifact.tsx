@@ -26,6 +26,8 @@ export type ArtifactProps = Partial<SurfaceProps> & {
 
 const MESH = { coin: Coin, note: Note, card: Card, stamp: Stamp };
 
+const SWAY_AMPLITUDE: Partial<Record<ArtifactKind, number>> = { stamp: 60 };
+
 type Motion = {
   rx: number;
   ry: number;
@@ -34,6 +36,7 @@ type Motion = {
   tx: number;
   ty: number;
   orbit: number;
+  swayPhase: number;
   flip: number;
   flipVelocity: number;
   zoom: number;
@@ -86,8 +89,17 @@ export function Artifact({
 }: ArtifactProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const rigRef = useRef<HTMLDivElement>(null);
-  const live = useRef({ mode, rotating, flipped, zoom, rpm, fit, onZoom });
-  live.current = { mode, rotating, flipped, zoom, rpm, fit, onZoom };
+  const live = useRef({
+    kind,
+    mode,
+    rotating,
+    flipped,
+    zoom,
+    rpm,
+    fit,
+    onZoom,
+  });
+  live.current = { kind, mode, rotating, flipped, zoom, rpm, fit, onZoom };
   const motion = useRef<Motion>({
     rx: 0,
     ry: 0,
@@ -96,6 +108,7 @@ export function Artifact({
     tx: 0,
     ty: 0,
     orbit: 0,
+    swayPhase: 0,
     flip: flipped ? 180 : 0,
     flipVelocity: 0,
     zoom,
@@ -163,7 +176,14 @@ export function Artifact({
           Math.abs(m.vy) > 0.01;
       } else if (props.mode === "orbit") {
         if (props.rotating && !m.drag) {
-          m.orbit += (props.rpm || 2) * 6 * dt;
+          const speed = (props.rpm || 2) * 6;
+          const sway = SWAY_AMPLITUDE[props.kind];
+          if (sway) {
+            m.swayPhase += (speed / sway) * dt;
+            m.orbit = sway * Math.sin(m.swayPhase);
+          } else {
+            m.orbit += speed * dt;
+          }
           moving = true;
         }
         const flipTarget = props.flipped ? 180 : 0;
@@ -317,6 +337,7 @@ export function Artifact({
       resetRef.current = resetKey;
       const m = motion.current;
       m.orbit = 0;
+      m.swayPhase = 0;
       m.dragX = 0;
       m.dragY = 0;
       m.flip = live.current.flipped ? 180 : 0;
