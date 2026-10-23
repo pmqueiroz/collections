@@ -153,13 +153,20 @@ export function DetailDrawer({
               </button>
               <div className="whitespace-nowrap mono text-cell">{item.id}</div>
               {process.env.NODE_ENV === "development" && (
-                <DevLink
-                  size="adaptive"
-                  href={`${relicPagePath(locale, item.id)}/edit`}
-                  className="mr-2 justify-self-end"
-                >
-                  Edit
-                </DevLink>
+                <div className="mr-2 flex gap-1.5 justify-self-end">
+                  <DevLink
+                    size="adaptive"
+                    href={`${relicPagePath(locale, item.id)}/clone`}
+                  >
+                    Clone
+                  </DevLink>
+                  <DevLink
+                    size="adaptive"
+                    href={`${relicPagePath(locale, item.id)}/edit`}
+                  >
+                    Edit
+                  </DevLink>
+                </div>
               )}
             </div>
           </div>
@@ -169,9 +176,14 @@ export function DetailDrawer({
               {item.id}
             </div>
             {process.env.NODE_ENV === "development" && (
-              <DevLink href={`${relicPagePath(locale, item.id)}/edit`}>
-                Edit
-              </DevLink>
+              <>
+                <DevLink href={`${relicPagePath(locale, item.id)}/clone`}>
+                  Clone
+                </DevLink>
+                <DevLink href={`${relicPagePath(locale, item.id)}/edit`}>
+                  Edit
+                </DevLink>
+              </>
             )}
             <Button onClick={onPrev}>↑ {text.prev}</Button>
             <Button onClick={onNext}>↓ {text.next}</Button>

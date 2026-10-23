@@ -36,6 +36,7 @@ import { saveRelic } from "./save-relic";
 type RelicEditorProps = {
   initial: TextureDraft;
   previousId: string | null;
+  cloneOf?: string;
   suggestedIds?: Record<ArtifactKind, string>;
 };
 
@@ -69,6 +70,7 @@ export function RelicEditor(props: RelicEditorProps) {
 function RelicEditorForm({
   initial,
   previousId,
+  cloneOf,
   suggestedIds,
 }: RelicEditorProps) {
   const [draft, setDraft] = useState(initial);
@@ -83,8 +85,9 @@ function RelicEditorForm({
   const { meta } = draft;
   const specs = isRecord(meta.specs) ? meta.specs : {};
   const id = textValue(meta.id);
-  const backHref = previousId
-    ? relicPagePath(locale, previousId)
+  const sourceId = previousId ?? cloneOf;
+  const backHref = sourceId
+    ? relicPagePath(locale, sourceId)
     : localePath(locale);
   const sides = [
     { value: false, label: dict.side.obv },
@@ -180,7 +183,11 @@ function RelicEditorForm({
             ‹ Back
           </Link>
           <h1 className="truncate text-sm font-semibold">
-            {previousId ? `Edit ${previousId}` : "New entry"}
+            {previousId
+              ? `Edit ${previousId}`
+              : cloneOf
+                ? `Clone ${cloneOf}`
+                : "New entry"}
           </h1>
           <span className="flex-none rounded-xs border border-dev-line bg-dev px-1.5 mono text-tag uppercase tracking-label">
             dev
