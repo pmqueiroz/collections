@@ -13,6 +13,8 @@ explain the *why* and the gotchas.
   views, keyboard rules, texture editor, 3D artifact viewer.
 - [relic.md](./.refs/relic.md) — the `.relic` container: binary layout,
   manifest schema, flags, who reads/writes it.
+- [i18n.md](./.refs/i18n.md) — locales (`en`, `pt-BR`), `/[lang]` routing,
+  proxy redirect, typed dictionaries, what is not translated.
 - [ci-cd.md](./.refs/ci-cd.md) — CI/CD pipeline: jobs, toolchain pin, what's
   not set up yet.
 - [incidents/](./.refs/incidents/README.md) — postmortems + standing rules;

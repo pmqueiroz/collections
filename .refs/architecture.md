@@ -29,9 +29,11 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 
 ## Layout
 
-- `app/` — App Router root. `layout.tsx` is the root layout (Geist and Geist
-  Mono via `next/font/google`, `metadata`), `page.tsx` renders the archive
-  index at `/`, `globals.css` holds the design tokens. Icons use the
+- `app/` — App Router root. `[lang]/layout.tsx` is the root layout (Geist
+  and Geist Mono via `next/font/google`, localized metadata, `LocaleProvider`),
+  `[lang]/page.tsx` renders the archive index at `/<lang>`, `globals.css`
+  holds the design tokens. Every page is under `[lang]`; see
+  [i18n.md](./i18n.md). Icons use the
   metadata file conventions: `icon.svg` is the source (ink tile, paper 2×2
   grid echoing the "All" domain glyph, coin in the top-left cell);
   `favicon.ico` (16/32/48 PNG-in-ICO) and `apple-icon.png` (180px, opaque)
@@ -39,15 +41,20 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 - `components/ui/` — shared primitives: `Button` (+ `buttonClass` for
   non-button elements such as a file `<label>`; `size="adaptive"` is 40px
   on phones, 28px from `regular:`), `TabButton`, `SegmentedControl`
-  (`touch` and `fill` sizes for phone controls, `disabled`), `SectionLabel`,
+  (`touch` and `fill` sizes for phone controls, `disabled`, optional
+  `label` for the `<fieldset>` group name), `SectionLabel`,
   `RangeField` (taller rows below `regular:`), `useMediaQuery`, `useInView`
   (IntersectionObserver visibility of a ref, with `rootMargin`), and `cx`.
 - `components/artifact/` — the reusable 3D `Artifact` viewer.
+- `i18n/` — locales, dictionaries, `LocaleProvider`, `LocaleSwitch`
+  (see [i18n.md](./i18n.md)).
+- `proxy.ts` — redirects unprefixed paths to a locale.
 - `features/<name>/` — one directory per feature. Currently
   `features/archive/`, see [archive.md](./archive.md).
 - `relics/` — the catalog data: one `.relic` per entry, read at build time
   by `loadCatalog()` (see [relic.md](./relic.md)).
-- `app/relics/[id]/[face]/route.ts` — serves relic textures.
+- `app/relics/[id]/[face]/route.ts` — serves relic textures (outside
+  `[lang]`, locale-independent).
 - `public/` — static assets served from `/` (empty for now).
 
 Features import from `components/`, never the other way around.

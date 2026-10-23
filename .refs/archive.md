@@ -1,6 +1,6 @@
 # Archive Index
 
-The home route (`/`) is the **Master Index**: a catalog of coins, banknotes,
+The home route (`/<lang>`, see [i18n.md](./i18n.md)) is the **Master Index**: a catalog of coins, banknotes,
 phonecards and stamps with a list view, an artifact grid, a hover preview, a
 detail drawer with a 3D viewer, and a texture editor that exports texture
 files.
@@ -19,7 +19,7 @@ rewritten as React + Tailwind.
   `relics/*.relic`, see [relic.md](./relic.md).
 - `features/archive/relic/` — `.relic` codec (`relic-file.ts`), manifest
   validation (`manifest.ts`), server loader (`load-catalog.ts`).
-  `app/page.tsx` awaits `loadCatalog()` and passes `catalog` to
+  `app/[lang]/page.tsx` awaits `loadCatalog()` and passes `catalog` to
   `ArchiveIndex`; `app/relics/[id]/[face]/route.ts` serves textures.
 - `features/archive/columns.ts` — per-domain list columns (`COLUMNS`), cell
   type → class map, min table widths, drawer spec rows (`specRows`).
@@ -31,7 +31,7 @@ rewritten as React + Tailwind.
   `defaultView`, `rowDensity`, `orbitRpm`, `dwell`.
 - `features/archive/use-relic-history.ts` — `useRelicHistory`, keeps the
   open detail in the URL and history (see **Share links** below).
-- `app/relics/[id]/page.tsx` + `opengraph-image.tsx` — per-relic share page
+- `app/[lang]/relics/[id]/page.tsx` + `opengraph-image.tsx` — per-relic share page
   and its preview card (see **Share links**).
 - `header.tsx`, `list-view.tsx`, `grid-view.tsx`, `hover-preview.tsx`,
   `artifact-caption.tsx`, `silhouette.tsx`, `detail-drawer.tsx` — the views.
@@ -84,9 +84,10 @@ rewritten as React + Tailwind.
   `Esc` close, arrows prev/next (wrap around the *filtered* list), `F`
   flip, `Space` pause/resume orbit. Keys are ignored while focus is in an
   input, except `Esc`.
-- **Share links**: the open detail lives at `/relics/<id>`, so the address
+- **Share links**: the open detail lives at `/<lang>/relics/<id>`
+  (`relicPagePath(locale, id)` in `artifact-config.ts`), so the address
   bar is always a shareable link.
-  - `app/relics/[id]/page.tsx` renders the same `ArchiveIndex` with
+  - `app/[lang]/relics/[id]/page.tsx` renders the same `ArchiveIndex` with
     `relicId`; `generateStaticParams` prerenders every catalog id. The
     drawer opens in a mount effect, not on the server, because its layout
     depends on `compact` (JS), which is `false` on the server; a shared
@@ -99,8 +100,8 @@ rewritten as React + Tailwind.
     `{ relicDrawer: true }`; stepping prev/next `replaceState`s. Closing
     (Esc, Close, scrim, back button, edge swipe) calls `history.back()` when
     the current entry was pushed by us, otherwise (landed on a shared link)
-    `replaceState`s to `/`. A `popstate` listener maps the path back to
-    state: a known `/relics/<id>` opens that relic, anything else closes.
+    `replaceState`s to `/<lang>`. A `popstate` listener maps the path back to
+    state: a known `/<lang>/relics/<id>` opens that relic, anything else closes.
     So Back closes the drawer, Forward reopens it, and Back from a landing
     link leaves the site. Only the relic id is in the URL: side, zoom,
     domain, search and sort are not.
@@ -108,12 +109,14 @@ rewritten as React + Tailwind.
     to copy its `__NA`/tree state and sync `usePathname`. It skips that
     sync when the data object already carries `__NA`, so always pass a
     fresh object (never `history.state`). Every entry carries the landing
-    page's router tree, so traversing between `/` and `/relics/<id>`
+    page's router tree, so traversing between `/<lang>` and
+    `/<lang>/relics/<id>`
     never remounts `ArchiveIndex`.
   - **Metadata**: `generateMetadata` sets title
-    (`<title> · <id> · Master Index`), `itemSummary` as description,
-    Open Graph and `summary_large_image` Twitter tags. `metadataBase` in
-    `app/layout.tsx` is the production origin
+    (`<title> · <id> · Master Index`), `itemSummary` as description
+    (localized), `canonical` + hreflang alternates, Open Graph (with
+    `locale`) and `summary_large_image` Twitter tags. `metadataBase` in
+    `app/[lang]/layout.tsx` is the production origin
     (`https://collections.pmqueiroz.dev`), so image URLs are absolute
     there; change it if the domain moves.
   - **Preview card** (`opengraph-image.tsx`, 1200×630 PNG, prerendered per
@@ -155,7 +158,8 @@ Compact behavior:
 
 - **Header**: large domain title (`domainTitle`: "Index" for All) + count,
   List/Grid toggle, an "Editor" button for the texture editor, 16px search input (no iOS focus zoom), a native
-  `<select>` overlaid invisibly on the Sort label, and a direction toggle.
+  `<select>` overlaid invisibly on the Sort label, a direction toggle, and a
+  language tile (same overlaid-`<select>` trick, see [i18n.md](./i18n.md)).
   Picking a sort from the select resets direction to ascending.
 - **Bottom tab bar** replaces the domain tabs. Tapping the active domain
   scrolls to top. Lists get bottom padding of tab-bar height + safe area.
@@ -176,7 +180,7 @@ Compact behavior:
   number inputs; footer buttons use `size="adaptive"`. The face editor
   measures its section and caps the template at `width - 76px` so it fits
   narrow screens.
-- **Safe areas**: `viewport-fit=cover` is set in `app/layout.tsx`; headers
+- **Safe areas**: `viewport-fit=cover` is set in `app/[lang]/layout.tsx`; headers
   use `pt-safe`, the tab bar, drawer footer and sheet footer use `pb-safe`.
 
 Entry animations use Tailwind `starting:` (`@starting-style`), so the
