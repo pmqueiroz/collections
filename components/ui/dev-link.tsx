@@ -1,9 +1,9 @@
-import Link from "next/link";
 import type { ComponentProps } from "react";
 import { type ButtonSize, buttonShape } from "./button";
 import { cx } from "./cx";
+import { SearchLink } from "./search-link";
 
-type DevLinkProps = ComponentProps<typeof Link> & { size?: ButtonSize };
+type DevLinkProps = ComponentProps<typeof SearchLink> & { size?: ButtonSize };
 
 export function devButtonClass(size: ButtonSize = "sm") {
   return cx(
@@ -13,5 +13,7 @@ export function devButtonClass(size: ButtonSize = "sm") {
 }
 
 export function DevLink({ size, className, ...props }: DevLinkProps) {
-  return <Link className={cx(devButtonClass(size), className)} {...props} />;
+  return (
+    <SearchLink className={cx(devButtonClass(size), className)} {...props} />
+  );
 }

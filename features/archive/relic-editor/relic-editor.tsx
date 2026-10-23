@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   type ReactNode,
@@ -13,6 +12,10 @@ import { Artifact } from "../../../components/artifact/artifact";
 import type { ArtifactKind } from "../../../components/artifact/types";
 import { Button, buttonClass } from "../../../components/ui/button";
 import { cx } from "../../../components/ui/cx";
+import {
+  SearchLink,
+  withCurrentSearch,
+} from "../../../components/ui/search-link";
 import { SectionLabel } from "../../../components/ui/section-label";
 import { SegmentedControl } from "../../../components/ui/segmented-control";
 import {
@@ -149,7 +152,7 @@ function RelicEditorForm({
         return;
       }
       setStatus(`saved relics/${result.id}.relic`);
-      router.push(relicPagePath(locale, result.id));
+      router.push(withCurrentSearch(relicPagePath(locale, result.id)));
     } catch (error) {
       setStatus((error as Error).message);
     } finally {
@@ -176,12 +179,12 @@ function RelicEditorForm({
     <div className="min-h-screen bg-paper text-ink">
       <header className="sticky top-0 z-20 border-b border-line pt-safe glass">
         <div className="flex items-center gap-3 px-4 py-3.5 regular:px-7">
-          <Link
+          <SearchLink
             href={backHref}
             className={cx(buttonClass("outline", "adaptive"), "no-underline")}
           >
             ‹ Back
-          </Link>
+          </SearchLink>
           <h1 className="truncate text-sm font-semibold">
             {previousId
               ? `Edit ${previousId}`
