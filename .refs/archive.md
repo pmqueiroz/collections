@@ -103,6 +103,11 @@ rewritten as React + Tailwind.
   tallest controls are the `lg` segmented controls and the 30px search
   input; the drawer's id cell is pinned to `h-[30px]` because its buttons
   are only 28px). Change one, change the other.
+- **Search on Google**: an outline link under the drawer's spec rows (both
+  layouts) opens a Google search in a new tab. `itemSearchUrl(item, dict)`
+  (`catalog.ts`) builds the query as `<kind> <title> <face>` with the kind
+  in the active locale (`dict.kind`, e.g. `Stamp` / `Selo`), empty parts
+  dropped: PHI-S-0014 → `Stamp Peace Type (Paix), dark blue 65c`.
 - **Share links**: the open detail lives at `/<lang>/relics/<id>`
   (`relicPagePath(locale, id)` in `artifact-config.ts`), so the address
   bar is always a shareable link.
