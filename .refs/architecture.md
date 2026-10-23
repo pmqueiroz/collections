@@ -44,7 +44,11 @@ Code is the truth. This file explains the *why* behind the shape it takes.
   (`touch` and `fill` sizes for phone controls, `disabled`, optional
   `label` for the `<fieldset>` group name), `SectionLabel`,
   `RangeField` (taller rows below `regular:`), `useMediaQuery`, `useInView`
-  (IntersectionObserver visibility of a ref, with `rootMargin`), and `cx`.
+  (IntersectionObserver visibility of a ref, with `rootMargin`),
+  `useScrollLock` (sets `overflow: hidden` on `<html>` while `locked`;
+  reserves the gutter with `scrollbar-gutter: stable` only when the page
+  actually overflows, so the layout does not jump; restores the previous
+  inline styles on unlock), and `cx`.
 - `components/artifact/` — the reusable 3D `Artifact` viewer.
 - `i18n/` — locales, dictionaries, `LocaleProvider`, `LocaleSwitch`
   (see [i18n.md](./i18n.md)).

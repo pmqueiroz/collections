@@ -84,6 +84,9 @@ rewritten as React + Tailwind.
   `Esc` close, arrows prev/next (wrap around the *filtered* list), `F`
   flip, `Space` pause/resume orbit. Keys are ignored while focus is in an
   input, except `Esc`.
+- **Scroll lock**: `ArchiveIndex` calls `useScrollLock(open)`, so the
+  index behind the drawer cannot scroll while the drawer is open (desktop
+  and phone). The drawer body scrolls on its own (`overscroll-contain`).
 - **Drawer header height** must match the desktop `Header` so their bottom
   borders line up: both use `py-3.5` around a 30px row (the header's
   tallest controls are the `lg` segmented controls and the 30px search
