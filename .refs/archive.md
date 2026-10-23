@@ -236,8 +236,8 @@ mesh and faces, and downloads the result as a `.relic` to commit.
 - **Download** (the primary action unless a `save` prop overrides it)
   writes `<id>.relic` (or `<kind>.relic` for a blank draft):
   data URLs go back to raw bytes, manifest is `meta` + `kind` + `model`.
-- The preview renders the draft untextured (`textured={false}`), so faces
-  without an image show clay instead of the catalog "scan" placeholder.
+- The preview passes empty `face`/`year`/`origin` and the kind name as
+  `code`, so faces without an image show a blank "scan" placeholder.
 
 There is no auth. The cookie session that gated local saves was removed
 with local storage; add a real write guard when an upload endpoint exists.
@@ -267,14 +267,14 @@ the routes nor the buttons (see
   `loadRelicDraft(id)` (`relic-store.ts`, `'use cache'`, tagged) turns the
   relic into a draft with base64 data URLs on the server. A new entry
   starts from `blankEntry(kind, id)` (`entry-draft.ts`): empty text fields,
-  unknown year, amount 1, `VF`, `tex: false`, every spec `"—"`. A clone
+  unknown year, amount 1, `VF`, every spec `"—"`. A clone
   starts from the source's full draft (fields, faces, mesh) with `meta.id`
   swapped for that kind's `nextIds` suggestion; it is a new entry
   (`previousId: null`, kind unlocked) with `cloneOf` set, which only titles
   the page "Clone <id>" and points Back at the source relic.
 - **Form** (`relic-editor.tsx`): kind (locked when editing an existing
   entry), `id`, `title`, `origin`, `iso`, `face`, year (empty = unknown),
-  amount, condition, `tex`, and the kind's `SPEC_FIELDS`. Labels are the
+  amount, condition, and the kind's `SPEC_FIELDS`. Labels are the
   manifest keys. On a new entry, switching kind swaps specs to the new
   kind's fields (keeping matching values) and, when the id is empty or
   still the suggestion, replaces it with that kind's suggestion
@@ -306,7 +306,7 @@ the routes nor the buttons (see
 
 A CSS-3D rig (no WebGL). `artifact.tsx` owns motion; `coin.tsx`,
 `note.tsx`, `card.tsx`, `stamp.tsx` build the meshes; `surfaces.tsx` holds
-shared face layers (sheen, clay grid, image). Geometry is in millimetres and
+shared face layers (sheen, image). Geometry is in millimetres and
 scaled into a 240px rig.
 
 - **Modes**: `flat` (static pose, mesh draws only its front face: no coin
@@ -318,8 +318,10 @@ scaled into a 240px rig.
 - Motion runs in a single `requestAnimationFrame` loop that stops when
   settled; props are read through a ref so the loop never re-subscribes.
   Changing `resetKey` zeroes orbit/drag and snaps the flip.
-- Face variants per side: uploaded image → textured "scan" placeholder (when
-  the item has `tex`) → untextured clay.
+- Face variants per side: uploaded image, otherwise the "scan" placeholder
+  (drawn from `face`, `code`, `year`, `origin`). There is no untextured
+  clay variant. Older `.relic` manifests may still carry a `tex` boolean;
+  the parser ignores it and the editor carries it through on save.
 - **Face images** (`FittedImage` in `surfaces.tsx`, also used by the
   texture editor's face editor): a face-sized wrapper carries the
   `fitTransform` (translate % of the face, rotate, scale), and the image

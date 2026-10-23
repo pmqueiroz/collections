@@ -62,7 +62,6 @@ either is a decoder change; for zstd the spec must first say whether
   "year": 1960,
   "amount": 1,
   "cond": "XF",
-  "tex": true,
   "face": "1 F",
   "specs": { "cur": "FRF", "denom": "1", "mint": "Paris", "metal": "Nickel",
              "dia": "24.00", "thk": "1.80", "wt": "6.00", "edge": "Plain" },
@@ -155,7 +154,7 @@ years fold into `amount`. Tabs:
   which has none. Centavo denominations are stored in major units (`0.20`).
 
 The sheet only had denomination, amount, years and country, so every
-imported entry has `cond: "VF"`, `tex: false`, the default model for its
+imported entry has `cond: "VF"`, the default model for its
 kind, and `"—"` for every other spec field. The sheet's `UAE` was corrected
 to ISO `ARE`. Those placeholders are meant to be corrected per entry.
 
