@@ -58,7 +58,7 @@ export default async function RootLayout({
   if (!hasLocale(lang)) notFound();
   return (
     <html lang={lang} className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body className="min-h-screen bg-paper text-ink">
+      <body className="min-h-screen bg-paper text-ink" suppressHydrationWarning>
         <LocaleProvider locale={lang}>{children}</LocaleProvider>
       </body>
     </html>
