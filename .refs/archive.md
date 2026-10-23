@@ -28,9 +28,13 @@ rewritten as React + Tailwind.
 - `features/archive/archive-index.tsx` — client component that owns all
   index state (including the texture editor draft) and the keyboard
   handler. Props mirror the design's tweakables:
-  `defaultView`, `rowDensity`, `orbitRpm`, `dwell`.
+  `defaultView` (`"grid"`), `rowDensity`, `orbitRpm`, `dwell`. Both
+  headers' view toggles list Grid first, matching the default.
 - `features/archive/use-relic-history.ts` — `useRelicHistory`, keeps the
   open detail in the URL and history (see **Share links** below).
+- `features/archive/use-index-params.ts` — `useIndexParams`, mirrors
+  domain tab, sort, direction, search and view into the query string (see
+  **Index URL state** below).
 - `app/[lang]/relics/[id]/page.tsx` + `opengraph-image.tsx` — per-relic share page
   and its preview card (see **Share links**).
 - `header.tsx`, `list-view.tsx`, `grid-view.tsx`, `hover-preview.tsx`,
@@ -118,8 +122,10 @@ rewritten as React + Tailwind.
     `replaceState`s to `/<lang>`. A `popstate` listener maps the path back to
     state: a known `/<lang>/relics/<id>` opens that relic, anything else closes.
     So Back closes the drawer, Forward reopens it, and Back from a landing
-    link leaves the site. Only the relic id is in the URL: side, zoom,
-    domain, search and sort are not.
+    link leaves the site. The relic id is in the path; domain, search,
+    sort and view ride along in the query string (see **Index URL
+    state**) because every history call keeps `location.search`. Side
+    and zoom are not in the URL.
   - **Next history patch gotcha**: Next wraps `pushState`/`replaceState`
     to copy its `__NA`/tree state and sync `usePathname`. It skips that
     sync when the data object already carries `__NA`, so always pass a
@@ -143,6 +149,25 @@ rewritten as React + Tailwind.
     `sharp` (explicit dependency, pinned to Next's version) first. The raw
     asset is shown with `contain`, not the item's `fit`, so a two-sided
     scan shows both sides.
+- **Index URL state**: `useIndexParams` keeps the index controls in the
+  query string, on `/<lang>` and `/<lang>/relics/<id>` alike: `tab`
+  (domain), `sort`, `dir` (`asc`/`desc`), `q` (search) and `view`
+  (`grid`/`list`). Values equal to the default are omitted, so a pristine
+  index has no query string; unknown values fall back to the default.
+  - **Read**: in a mount effect, not on the server. Reading search params
+    during render (`useSearchParams`) would push the prerendered index
+    behind a client-only Suspense boundary, so the static shell paints the
+    defaults and a link with params switches after hydration. It re-reads
+    on `popstate` too.
+  - **Write**: `replaceState` (via `replaceSearch` in
+    `use-relic-history.ts`, which keeps the `relicDrawer` flag), never
+    `pushState`, so control changes do not add history entries. Writes are
+    debounced 250ms: typing in search would otherwise call
+    `replaceState` per keystroke, and Safari throws after ~100 calls in
+    30s. The write effect waits for the first read (`loaded`), or the
+    default state would wipe the incoming params.
+  - The locale switch already carries `location.search`, so changing
+    language keeps the index state.
 - **Zoom**: buttons step ±0.2, wheel steps ±0.1 per 40px of delta, clamped
   to 0.6–2.4.
 - **Texture editor** is opened from the header ("Texture editor" on
