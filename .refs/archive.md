@@ -331,6 +331,9 @@ scaled into a 240px rig.
   side-by-side scan). Sizing uses container query units
   (`container-type: size` on the wrapper) and the natural aspect read in
   `onLoad`; until it loads the image falls back to plain `object-cover`.
+  The cover size goes on an inner `div`, never on the `next/image`
+  itself: a `fill` image rejects `style.width` (runtime error), so the
+  image just fills that sized `div`.
   Fit offsets range ±200%. At the image's default fit, a face whose image
   matches the face aspect renders exactly as before.
 - `fit` sets the scale divisor: the rig scales to
