@@ -38,7 +38,6 @@ export function blankEntry(kind: ArtifactKind, id: string): TextureDraft {
       year: null,
       amount: 1,
       cond: "VF",
-      tex: false,
       face: "",
       specs: kindSpecs(kind, {}),
     },

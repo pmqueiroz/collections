@@ -1,21 +1,12 @@
 import type { CSSProperties } from "react";
 import { clamp, perforationGrid, perforationMask, round2 } from "./geometry";
 import type { MeshProps } from "./surface-props";
-import {
-  CLAY,
-  CLAY_LINE,
-  ClayGrid,
-  ClayWell,
-  FaceImage,
-  MonoText,
-  Sheen,
-} from "./surfaces";
+import { FaceImage, MonoText, Sheen } from "./surfaces";
 
 const STAMP_EXTENT = 168;
 
 export function Stamp({
   geo,
-  textured,
   obv,
   rev,
   fo,
@@ -54,7 +45,7 @@ export function Stamp({
             <FaceImage src={obv} fit={fo} backing="#E9E8E3" />
             <Sheen strength={0.4} spread="60%" />
           </>
-        ) : textured ? (
+        ) : (
           <>
             <div
               className="absolute inset-0"
@@ -92,20 +83,6 @@ export function Stamp({
             </div>
             <Sheen strength={0.5} spread="60%" />
           </>
-        ) : (
-          <>
-            <ClayGrid cell={[22, 24]} />
-            <div
-              className="absolute"
-              style={{
-                inset: margin,
-                border: `1px solid ${CLAY_LINE}`,
-                background: CLAY,
-              }}
-            />
-            <ClayWell className="left-1/2 top-1/2 -ml-[15px] -mt-[15px] size-[30px] rounded-xs" />
-            <Sheen strength={0.35} spread="60%" />
-          </>
         )}
       </div>
       {!flat && (
@@ -115,7 +92,7 @@ export function Stamp({
         >
           {rev ? (
             <FaceImage src={rev} fit={fr} backing="#E3E2DC" />
-          ) : textured ? (
+          ) : (
             <>
               <div
                 className="absolute inset-0"
@@ -128,8 +105,6 @@ export function Stamp({
                 REV · GUM
               </MonoText>
             </>
-          ) : (
-            <ClayGrid cell={[22, 24]} />
           )}
           <Sheen strength={0.6} spread="55%" />
         </div>

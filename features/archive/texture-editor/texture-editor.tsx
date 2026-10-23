@@ -280,7 +280,6 @@ export function TextureEditor({
                 >
                   <Artifact
                     {...draft}
-                    textured={false}
                     face=""
                     code={dict.kind[draft.kind]}
                     year=""

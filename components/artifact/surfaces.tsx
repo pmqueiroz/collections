@@ -4,9 +4,6 @@ import { cx } from "../ui/cx";
 import { fitTransform } from "./geometry";
 import type { Fit } from "./types";
 
-export const CLAY = "#E6E5E0";
-export const CLAY_LINE = "#C2C1BC";
-
 export function Sheen({
   strength,
   spread = "58%",
@@ -19,39 +16,6 @@ export function Sheen({
       className="absolute inset-0"
       style={{
         background: `radial-gradient(circle at var(--sx, 32%) var(--sy, 26%), rgba(245,244,240,${strength}) 0%, rgba(245,244,240,0) ${spread})`,
-      }}
-    />
-  );
-}
-
-export function ClayGrid({ cell }: { cell: [number, number] }) {
-  return (
-    <div
-      className="absolute inset-0 opacity-75"
-      style={{
-        background: CLAY,
-        backgroundImage: `linear-gradient(${CLAY_LINE} 1px, rgba(0,0,0,0) 1px), linear-gradient(90deg, ${CLAY_LINE} 1px, rgba(0,0,0,0) 1px)`,
-        backgroundSize: `${cell[0]}px ${cell[1]}px`,
-      }}
-    />
-  );
-}
-
-export function ClayWell({
-  className,
-  style,
-}: {
-  className?: string;
-  style?: CSSProperties;
-}) {
-  return (
-    <div
-      className={cx("absolute", className)}
-      style={{
-        background: "#DFDED9",
-        boxShadow:
-          "inset 1px 1px 2px rgba(22,22,21,0.18), inset -1px -1px 1px rgba(245,244,240,0.9)",
-        ...style,
       }}
     />
   );

@@ -217,7 +217,6 @@ function RelicEditorForm({
           <div className="relative h-[44vh] min-h-70 rounded-xs bg-surface regular:h-[60vh]">
             <Artifact
               {...draft}
-              textured={meta.tex === true}
               face={textValue(meta.face)}
               code={id}
               year={numberValue(meta.year) || "—"}
@@ -312,17 +311,6 @@ function RelicEditorForm({
                   </option>
                 ))}
               </select>
-            </FieldRow>
-            <FieldRow label="tex">
-              <SegmentedControl
-                className="justify-self-start"
-                options={[
-                  { value: true, label: dict.editor.choice.on },
-                  { value: false, label: dict.editor.choice.off },
-                ]}
-                value={meta.tex === true}
-                onChange={(tex) => setMeta({ tex })}
-              />
             </FieldRow>
           </div>
 

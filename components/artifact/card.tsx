@@ -1,14 +1,7 @@
 import type { CSSProperties } from "react";
 import { clamp, round2 } from "./geometry";
 import type { MeshProps } from "./surface-props";
-import {
-  CLAY_LINE,
-  ClayGrid,
-  ClayWell,
-  FaceImage,
-  MonoText,
-  Sheen,
-} from "./surfaces";
+import { FaceImage, MonoText, Sheen } from "./surfaces";
 
 const CARD_WIDTH = 200;
 const EDGE_LAYERS = [-0.5, -0.25, 0, 0.25, 0.5];
@@ -43,50 +36,12 @@ function MetalChip({ style }: { style: CSSProperties }) {
   );
 }
 
-function ClayChip({ style }: { style: CSSProperties }) {
-  return (
-    <div
-      className="absolute box-border h-[22px] w-7 rounded-sm"
-      style={{
-        ...style,
-        background: "#DCDBD6",
-        border: `1px solid ${CLAY_LINE}`,
-        boxShadow: "inset 0.6px 0.8px 1.2px rgba(22,22,21,0.14)",
-      }}
-    >
-      <div
-        className="absolute bottom-0.5 left-1/2 top-0.5 -ml-[0.5px] w-px"
-        style={{ background: CLAY_LINE }}
-      />
-      <div
-        className="absolute left-0.5 right-0.5 top-1.5 h-px"
-        style={{ background: CLAY_LINE }}
-      />
-      <div
-        className="absolute left-0.5 right-0.5 top-[13px] h-px"
-        style={{ background: CLAY_LINE }}
-      />
-    </div>
-  );
-}
-
-export function Card({
-  geo,
-  textured,
-  obv,
-  rev,
-  fo,
-  fr,
-  face,
-  code,
-  flat,
-}: MeshProps) {
+export function Card({ geo, obv, rev, fo, fr, face, code, flat }: MeshProps) {
   const scale = CARD_WIDTH / (geo.w || 85.6);
   const height = round2(clamp((geo.h || 53.98) * scale, 40, 220));
   const thickness = clamp((geo.thk ?? 0.76) * scale, 0.6, 12);
   const radius = round2(clamp((geo.r ?? 3.18) * scale, 0, height / 2));
   const half = round2(thickness / 2);
-  const lit = textured || Boolean(obv);
   const chip = geo.chip !== false;
   const chipStyle = {
     left: round2((geo.chipX ?? 9.4) * scale),
@@ -99,16 +54,6 @@ export function Card({
     height,
     borderRadius: radius,
   };
-  const clayOutline = (
-    <div
-      className="absolute inset-0"
-      style={{
-        borderRadius: radius,
-        boxShadow: `inset 0 0 0 1px ${CLAY_LINE}`,
-      }}
-    />
-  );
-
   return (
     <div className="absolute inset-0 transform-3d">
       {!flat &&
@@ -129,7 +74,7 @@ export function Card({
       >
         {obv ? (
           <FaceImage src={obv} fit={fo} backing="#D3D2CC" />
-        ) : textured ? (
+        ) : (
           <>
             <div
               className="absolute inset-0"
@@ -154,15 +99,8 @@ export function Card({
               {face}
             </MonoText>
           </>
-        ) : (
-          <>
-            <ClayGrid cell={[20, 21]} />
-            {clayOutline}
-            <ClayWell className="left-32 top-1/2 -mt-3.5 size-7 rounded-full" />
-          </>
         )}
-        {chip && lit && <MetalChip style={chipStyle} />}
-        {chip && !lit && <ClayChip style={chipStyle} />}
+        {chip && <MetalChip style={chipStyle} />}
         <Sheen strength={0.5} />
       </div>
       {!flat && (
@@ -175,7 +113,7 @@ export function Card({
         >
           {rev ? (
             <FaceImage src={rev} fit={fr} backing="#D3D2CC" />
-          ) : textured ? (
+          ) : (
             <>
               <div
                 className="absolute inset-0"
@@ -192,11 +130,6 @@ export function Card({
               <MonoText className="absolute bottom-3 left-3.5 text-[7px] tracking-[0.14em]">
                 REV · SCAN · {code}
               </MonoText>
-            </>
-          ) : (
-            <>
-              <ClayGrid cell={[20, 21]} />
-              {clayOutline}
             </>
           )}
           <Sheen strength={0.5} />

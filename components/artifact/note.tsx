@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { clamp, round2 } from "./geometry";
 import type { MeshProps, SurfaceProps } from "./surface-props";
-import { ClayGrid, ClayWell, FaceImage, MonoText, Sheen } from "./surfaces";
+import { FaceImage, MonoText, Sheen } from "./surfaces";
 
 const STRIP_COUNT = 11;
 const STRIP_PITCH = 20;
@@ -24,10 +24,9 @@ function strips(curve: number) {
 function FrontFace({
   obv,
   fo,
-  textured,
   face,
   code,
-}: Pick<SurfaceProps, "obv" | "fo" | "textured" | "face" | "code">) {
+}: Pick<SurfaceProps, "obv" | "fo" | "face" | "code">) {
   if (obv)
     return (
       <>
@@ -35,46 +34,37 @@ function FrontFace({
         <Sheen strength={0.4} spread="60%" />
       </>
     );
-  if (textured)
-    return (
-      <>
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(100deg, #DAD9D3 0%, #CDCCC6 55%, #D7D6D0 100%)",
-          }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "repeating-linear-gradient(0deg, rgba(22,22,21,0.04) 0 0.5px, rgba(22,22,21,0) 0.5px 2.2px)",
-          }}
-        />
-        <div className="absolute inset-[7px] border border-ink/13" />
-        <div
-          className="absolute left-[148px] top-[21%] h-[58%] w-[52px] rounded-full"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, #E4E3DD 0%, #DBDAD4 65%, rgba(219,218,212,0) 100%)",
-          }}
-        />
-        <MonoText className="absolute left-4 top-[13px] text-[22px] font-medium tracking-[-0.03em]">
-          {face}
-        </MonoText>
-        <MonoText className="absolute bottom-[13px] left-4 text-[7px] tracking-[0.14em]">
-          OBV · SCAN · {code}
-        </MonoText>
-        <Sheen strength={0.5} spread="60%" />
-      </>
-    );
   return (
     <>
-      <ClayGrid cell={[22, 26]} />
-      <div className="absolute inset-0 shadow-[inset_0_0_0_1px_#C2C1BC]" />
-      <ClayWell className="left-[87px] top-1/2 -mt-[13px] h-[26px] w-[46px] rounded-xs" />
-      <Sheen strength={0.35} spread="60%" />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(100deg, #DAD9D3 0%, #CDCCC6 55%, #D7D6D0 100%)",
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "repeating-linear-gradient(0deg, rgba(22,22,21,0.04) 0 0.5px, rgba(22,22,21,0) 0.5px 2.2px)",
+        }}
+      />
+      <div className="absolute inset-[7px] border border-ink/13" />
+      <div
+        className="absolute left-[148px] top-[21%] h-[58%] w-[52px] rounded-full"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, #E4E3DD 0%, #DBDAD4 65%, rgba(219,218,212,0) 100%)",
+        }}
+      />
+      <MonoText className="absolute left-4 top-[13px] text-[22px] font-medium tracking-[-0.03em]">
+        {face}
+      </MonoText>
+      <MonoText className="absolute bottom-[13px] left-4 text-[7px] tracking-[0.14em]">
+        OBV · SCAN · {code}
+      </MonoText>
+      <Sheen strength={0.5} spread="60%" />
     </>
   );
 }
@@ -82,10 +72,9 @@ function FrontFace({
 function BackFace({
   rev,
   fr,
-  textured,
   face,
   year,
-}: Pick<SurfaceProps, "rev" | "fr" | "textured" | "face" | "year">) {
+}: Pick<SurfaceProps, "rev" | "fr" | "face" | "year">) {
   if (rev)
     return (
       <>
@@ -93,37 +82,30 @@ function BackFace({
         <Sheen strength={0.4} spread="60%" />
       </>
     );
-  if (textured)
-    return (
-      <>
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(80deg, #D6D5CF 0%, #CAC9C3 50%, #D4D3CD 100%)",
-          }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "repeating-linear-gradient(90deg, rgba(22,22,21,0.035) 0 0.5px, rgba(22,22,21,0) 0.5px 2.2px)",
-          }}
-        />
-        <div className="absolute inset-[7px] border border-ink/13" />
-        <MonoText className="absolute right-4 top-[13px] text-[22px] font-medium tracking-[-0.03em]">
-          {face}
-        </MonoText>
-        <MonoText className="absolute bottom-[13px] left-4 text-[7px] tracking-[0.14em]">
-          REV · SCAN · {year}
-        </MonoText>
-        <Sheen strength={0.45} spread="60%" />
-      </>
-    );
   return (
     <>
-      <ClayGrid cell={[22, 26]} />
-      <div className="absolute inset-0 shadow-[inset_0_0_0_1px_#C2C1BC]" />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(80deg, #D6D5CF 0%, #CAC9C3 50%, #D4D3CD 100%)",
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "repeating-linear-gradient(90deg, rgba(22,22,21,0.035) 0 0.5px, rgba(22,22,21,0) 0.5px 2.2px)",
+        }}
+      />
+      <div className="absolute inset-[7px] border border-ink/13" />
+      <MonoText className="absolute right-4 top-[13px] text-[22px] font-medium tracking-[-0.03em]">
+        {face}
+      </MonoText>
+      <MonoText className="absolute bottom-[13px] left-4 text-[7px] tracking-[0.14em]">
+        REV · SCAN · {year}
+      </MonoText>
+      <Sheen strength={0.45} spread="60%" />
     </>
   );
 }

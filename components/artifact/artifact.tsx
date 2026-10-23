@@ -75,7 +75,6 @@ export function Artifact({
   className,
   style,
   geo = {},
-  textured = true,
   obv = "",
   rev = "",
   fo,
@@ -356,7 +355,6 @@ export function Artifact({
       >
         <Mesh
           geo={geo}
-          textured={textured}
           obv={obv}
           rev={rev}
           fo={fo}

@@ -70,7 +70,6 @@ export function parseCatalogEntry({
     if (typeof manifest[field] !== "string")
       throw new Error(`missing ${field}`);
   if (!isCondition(manifest.cond)) throw new Error("unknown condition");
-  if (typeof manifest.tex !== "boolean") throw new Error("missing tex");
   const specs = isRecord(manifest.specs) ? manifest.specs : {};
   for (const field of SPEC_FIELDS[kind])
     if (typeof specs[field] !== "string")
@@ -85,7 +84,6 @@ export function parseCatalogEntry({
     year: parseYear(manifest.year),
     amount: parseAmount(manifest.amount),
     cond: manifest.cond,
-    tex: manifest.tex,
     face: manifest.face,
     model: parseModel(kind, manifest.model),
     faces: { obv: Boolean(assets.obv), rev: Boolean(assets.rev) },

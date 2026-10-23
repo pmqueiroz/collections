@@ -21,7 +21,6 @@ type BaseItem = {
   year: number | null;
   amount: number;
   cond: Condition;
-  tex: boolean;
   face: string;
   model: ArtifactModel;
   faces: { obv: boolean; rev: boolean };

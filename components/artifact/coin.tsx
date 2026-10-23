@@ -1,14 +1,6 @@
 import { clamp, round2 } from "./geometry";
 import type { MeshProps } from "./surface-props";
-import {
-  CLAY,
-  CLAY_LINE,
-  ClayGrid,
-  ClayWell,
-  FaceImage,
-  MonoText,
-  Sheen,
-} from "./surfaces";
+import { FaceImage, MonoText, Sheen } from "./surfaces";
 
 const RIM = Array.from({ length: 40 }, (_, index) => {
   const angle = index * 9;
@@ -19,27 +11,6 @@ const RIM = Array.from({ length: 40 }, (_, index) => {
 
 const FACE_SIZE = 180;
 const SCALE_BASE = 180;
-
-function ClayFace({ bevel }: { bevel: number }) {
-  return (
-    <>
-      <ClayGrid cell={[30, 30]} />
-      <div
-        className="absolute inset-0 rounded-full"
-        style={{ boxShadow: `inset 0 0 0 1px ${CLAY_LINE}` }}
-      />
-      <div
-        className="absolute rounded-full"
-        style={{
-          inset: bevel,
-          border: `1px solid ${CLAY_LINE}`,
-          background: CLAY,
-        }}
-      />
-      <ClayWell className="left-[70px] top-[70px] size-10 rounded-full" />
-    </>
-  );
-}
 
 function ImageBevel({ bevel }: { bevel: number }) {
   return (
@@ -68,7 +39,6 @@ const ENGRAVING =
 
 export function Coin({
   geo,
-  textured,
   obv,
   rev,
   fo,
@@ -82,15 +52,9 @@ export function Coin({
   const thickness = round2(clamp((geo.thk || 1.8) * scale, 2, 40));
   const bevel = round2(clamp((geo.bevel ?? 1) * scale, 0, 40));
   const reeded = (geo.edge || "reeded") === "reeded";
-  const lit = textured || Boolean(obv);
-  const rimBackground = lit
-    ? reeded
-      ? "repeating-linear-gradient(90deg, #BDBCB6 0 0.8px, #D4D3CD 0.8px 2.6px)"
-      : "linear-gradient(#CFCEC8, #C6C5BF)"
-    : reeded
-      ? "repeating-linear-gradient(90deg, #D8D7D2 0 0.6px, #E6E5E0 0.6px 2.6px)"
-      : CLAY;
-  const rimLine = lit ? "0px solid transparent" : `1px solid ${CLAY_LINE}`;
+  const rimBackground = reeded
+    ? "repeating-linear-gradient(90deg, #BDBCB6 0 0.8px, #D4D3CD 0.8px 2.6px)"
+    : "linear-gradient(#CFCEC8, #C6C5BF)";
   const half = round2(thickness / 2);
   const faceBox = {
     left: 30,
@@ -113,8 +77,6 @@ export function Coin({
               height: thickness,
               transform: `rotateZ(${segment.angle}deg) translateY(-90px) rotateX(90deg)`,
               background: rimBackground,
-              borderTop: rimLine,
-              borderBottom: rimLine,
             }}
           >
             <div
@@ -133,7 +95,7 @@ export function Coin({
             <ImageBevel bevel={bevel} />
             <Sheen strength={0.45} />
           </>
-        ) : textured ? (
+        ) : (
           <>
             <div
               className="absolute inset-0"
@@ -163,11 +125,6 @@ export function Coin({
             </div>
             <Sheen strength={0.6} />
           </>
-        ) : (
-          <>
-            <ClayFace bevel={bevel} />
-            <Sheen strength={0.4} />
-          </>
         )}
       </div>
       {!flat && (
@@ -184,7 +141,7 @@ export function Coin({
               <ImageBevel bevel={bevel} />
               <Sheen strength={0.45} />
             </>
-          ) : textured ? (
+          ) : (
             <>
               <div
                 className="absolute inset-0"
@@ -211,8 +168,6 @@ export function Coin({
               </div>
               <Sheen strength={0.55} />
             </>
-          ) : (
-            <ClayFace bevel={bevel} />
           )}
         </div>
       )}

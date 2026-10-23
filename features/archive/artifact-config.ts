@@ -46,7 +46,6 @@ export function artifactProps(
 ) {
   return {
     kind: item.kind,
-    textured: item.tex,
     face: item.face,
     code: item.id,
     year: itemYear(item),
