@@ -12,6 +12,7 @@ type SegmentedControlProps<T> = {
   size?: SegmentedSize;
   framed?: boolean;
   disabled?: boolean;
+  label?: string;
   className?: string;
 };
 
@@ -45,10 +46,12 @@ export function SegmentedControl<T extends string | boolean>({
   size = "sm",
   framed = false,
   disabled = false,
+  label,
   className,
 }: SegmentedControlProps<T>) {
   return (
-    <div
+    <fieldset
+      aria-label={label}
       className={cx(
         "flex gap-0.5 p-0.5",
         SIZE[size].frame,
@@ -79,6 +82,6 @@ export function SegmentedControl<T extends string | boolean>({
           </button>
         );
       })}
-    </div>
+    </fieldset>
   );
 }
