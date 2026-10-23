@@ -135,6 +135,7 @@ export const en = {
     resetView: "Reset view",
     toggleOrbit: "Toggle orbit",
     specification: "Specification",
+    searchGoogle: "Search on Google",
   },
   editor: {
     title: "Texture editor",

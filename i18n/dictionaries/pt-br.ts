@@ -137,6 +137,7 @@ export const ptBR: Dictionary = {
     resetView: "Redefinir visualização",
     toggleOrbit: "Alternar rotação",
     specification: "Especificação",
+    searchGoogle: "Pesquisar no Google",
   },
   editor: {
     title: "Editor de texturas",

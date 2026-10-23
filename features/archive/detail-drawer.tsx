@@ -1,13 +1,13 @@
 import { type PointerEvent, useRef } from "react";
 import { Artifact } from "../../components/artifact/artifact";
-import { Button } from "../../components/ui/button";
+import { Button, buttonClass } from "../../components/ui/button";
 import { cx } from "../../components/ui/cx";
 import { DevLink } from "../../components/ui/dev-link";
 import { SectionLabel } from "../../components/ui/section-label";
 import { SegmentedControl } from "../../components/ui/segmented-control";
 import { useDictionary, useLocale } from "../../i18n/locale-provider";
 import { artifactProps, relicPagePath } from "./artifact-config";
-import { type CatalogItem, itemYear } from "./catalog";
+import { type CatalogItem, itemSearchUrl, itemYear } from "./catalog";
 import { specRows } from "./columns";
 
 export const ZOOM_MIN = 0.6;
@@ -327,6 +327,17 @@ export function DetailDrawer({
                 <div className="mono text-cell">{row.value}</div>
               </div>
             ))}
+            <a
+              href={itemSearchUrl(item, dict)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cx(
+                buttonClass("outline", compact ? "adaptive" : "sm"),
+                "mt-5 no-underline",
+              )}
+            >
+              {text.searchGoogle} ↗
+            </a>
           </div>
         </div>
         {compact && (

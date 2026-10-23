@@ -122,6 +122,13 @@ export function itemYear(item: CatalogItem) {
   return item.year === null ? "—" : String(item.year);
 }
 
+export function itemSearchUrl(item: CatalogItem, dict: Dictionary) {
+  const query = [dict.kind[item.kind], item.title, item.face]
+    .filter(Boolean)
+    .join(" ");
+  return `https://www.google.com/search?${new URLSearchParams({ q: query })}`;
+}
+
 export function itemSubtitle(item: CatalogItem) {
   const parts =
     item.kind === "card"
