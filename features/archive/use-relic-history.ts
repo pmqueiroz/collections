@@ -16,13 +16,22 @@ function isDrawerEntry() {
   return state?.[DRAWER_ENTRY] === true;
 }
 
-function replacePath(path: string) {
-  if (window.location.pathname === path) return;
+function replaceUrl(path: string, search: string) {
+  if (window.location.pathname === path && window.location.search === search)
+    return;
   window.history.replaceState(
     { [DRAWER_ENTRY]: isDrawerEntry() },
     "",
-    `${path}${window.location.search}${window.location.hash}`,
+    `${path}${search}${window.location.hash}`,
   );
+}
+
+function replacePath(path: string) {
+  replaceUrl(path, window.location.search);
+}
+
+export function replaceSearch(search: string) {
+  replaceUrl(window.location.pathname, search);
 }
 
 export function useRelicHistory(onRoute: (id: string | null) => void) {

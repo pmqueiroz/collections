@@ -26,6 +26,7 @@ import { ListView } from "./list-view";
 import { domainCounts, queryCatalog, type SortDirection } from "./query";
 import { TextureEditor } from "./texture-editor/texture-editor";
 import { blankTexture } from "./texture-editor/texture-file";
+import { useIndexParams } from "./use-index-params";
 import { useRelicHistory } from "./use-relic-history";
 
 type ArchiveIndexProps = {
@@ -67,6 +68,17 @@ export function ArchiveIndex({
   const fineHover = useMediaQuery(FINE_HOVER_QUERY, true);
   const dict = useDictionary();
   useScrollLock(open);
+  useIndexParams(
+    { domain, sort, direction, query, view },
+    defaultView,
+    (params) => {
+      setDomain(params.domain);
+      setSort(params.sort);
+      setDirection(params.direction);
+      setQuery(params.query);
+      setView(params.view);
+    },
+  );
 
   const counts = useMemo(() => domainCounts(catalog), [catalog]);
   const items = useMemo(
