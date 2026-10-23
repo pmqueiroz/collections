@@ -347,7 +347,19 @@ scaled into a 240px rig.
   settled; props are read through a ref so the loop never re-subscribes.
   Changing `resetKey` zeroes orbit/drag and snaps the flip.
 - Face variants per side: uploaded image, otherwise the "scan" placeholder
-  (drawn from `face`, `code`, `year`, `origin`). There is no untextured
+  (drawn from `face`, `code`, `year`, `origin`). Each mesh keeps its
+  placeholder as `ObverseScan`/`ReverseScan` (`FrontScan`/`BackScan` on
+  notes), with a `loading` flag.
+- **Loading variant**: `FaceImage` takes a `placeholder(loading)` render
+  prop. Until the image's `onLoad`, it draws the placeholder with
+  `loading` set (label reads `LOADING` via `scanLabel`) plus a light
+  sweep (`animate-scan-sweep`, `motion-safe` only, a transformed gradient so
+  it stays on the compositor). The `<img>` sits on top the whole time
+  instead of fading in. Next fires `onLoad` only after `decode()`
+  resolves, so hiding the image until then would flash the loading
+  placeholder for a frame on cached images. On load the placeholder is
+  swapped for the plain `backing` colour. If the image errors it is
+  dropped and the normal scan placeholder stays. There is no untextured
   clay variant. Older `.relic` manifests may still carry a `tex` boolean;
   the parser ignores it and the editor carries it through on save.
 - **Face images** (`FittedImage` in `surfaces.tsx`, also used by the
