@@ -360,6 +360,14 @@ scaled into a 240px rig.
   `orbit` (auto-rotate at `rpm`, drag to rotate with X clamped ±70°, wheel
   calls `onZoom`, two-finger pinch calls `onZoom(±1)` each time the finger
   span changes by ~10%, spring-animated flip and zoom).
+- **Sway kinds**: kinds in `SWAY_AMPLITUDE` (`artifact.tsx`; only `stamp`,
+  ±60°) never auto-rotate a full turn, so the reverse is never shown unless
+  reached manually (drag or the Obv/Rev flip). Their auto-orbit is
+  `amplitude · sin(phase)` with `phase += rpm·6 / amplitude · dt`, so the
+  peak angular speed equals the normal `rpm` speed. The sway is added to
+  drag and flip, so it rocks around whichever side the user left facing;
+  with the −15°/15° base pose the front stays within −45°…75°. Pausing keeps
+  the phase; `resetKey` zeroes it.
 - Motion runs in a single `requestAnimationFrame` loop that stops when
   settled; props are read through a ref so the loop never re-subscribes.
   Changing `resetKey` zeroes orbit/drag and snaps the flip.
