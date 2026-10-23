@@ -2,10 +2,11 @@ import { type PointerEvent, useRef } from "react";
 import { Artifact } from "../../components/artifact/artifact";
 import { Button } from "../../components/ui/button";
 import { cx } from "../../components/ui/cx";
+import { DevLink } from "../../components/ui/dev-link";
 import { SectionLabel } from "../../components/ui/section-label";
 import { SegmentedControl } from "../../components/ui/segmented-control";
-import { useDictionary } from "../../i18n/locale-provider";
-import { artifactProps } from "./artifact-config";
+import { useDictionary, useLocale } from "../../i18n/locale-provider";
+import { artifactProps, relicPagePath } from "./artifact-config";
 import { type CatalogItem, itemYear } from "./catalog";
 import { specRows } from "./columns";
 
@@ -63,6 +64,7 @@ export function DetailDrawer({
   const asideRef = useRef<HTMLElement>(null);
   const swipe = useRef<{ x: number; dx: number } | null>(null);
   const dict = useDictionary();
+  const locale = useLocale();
   const text = dict.drawer;
   const sides = [
     { value: false, label: dict.side.obv },
@@ -150,6 +152,15 @@ export function DetailDrawer({
                 {backLabel}
               </button>
               <div className="whitespace-nowrap mono text-cell">{item.id}</div>
+              {process.env.NODE_ENV === "development" && (
+                <DevLink
+                  size="adaptive"
+                  href={`${relicPagePath(locale, item.id)}/edit`}
+                  className="mr-2 justify-self-end"
+                >
+                  Edit
+                </DevLink>
+              )}
             </div>
           </div>
         ) : (
@@ -157,6 +168,11 @@ export function DetailDrawer({
             <div className="mr-auto flex h-[30px] items-center mono text-cell">
               {item.id}
             </div>
+            {process.env.NODE_ENV === "development" && (
+              <DevLink href={`${relicPagePath(locale, item.id)}/edit`}>
+                Edit
+              </DevLink>
+            )}
             <Button onClick={onPrev}>↑ {text.prev}</Button>
             <Button onClick={onNext}>↓ {text.next}</Button>
             <Button onClick={onClose}>{text.close} · Esc</Button>

@@ -1,8 +1,10 @@
 import { Button } from "../../components/ui/button";
+import { DevLink } from "../../components/ui/dev-link";
 import { SegmentedControl } from "../../components/ui/segmented-control";
 import { TabButton } from "../../components/ui/tab-button";
-import { useDictionary } from "../../i18n/locale-provider";
+import { useDictionary, useLocale } from "../../i18n/locale-provider";
 import { LocaleSwitch } from "../../i18n/locale-switch";
+import { localePath } from "../../i18n/locales";
 import { DOMAINS, type Domain, SORTS, type SortKey } from "./catalog";
 import type { SortDirection } from "./query";
 
@@ -49,6 +51,7 @@ export function Header({
   onTextureEditor,
 }: HeaderProps) {
   const dict = useDictionary();
+  const locale = useLocale();
   const views: { value: View; label: string }[] = [
     { value: "list", label: dict.header.listView },
     { value: "grid", label: dict.header.gridView },
@@ -108,6 +111,11 @@ export function Header({
         </div>
 
         <div className="ml-auto flex items-center gap-2">
+          {process.env.NODE_ENV === "development" && (
+            <DevLink href={localePath(locale, "/relics/new")}>
+              + New entry
+            </DevLink>
+          )}
           <Button onClick={onTextureEditor}>{dict.header.textureEditor}</Button>
           <SegmentedControl
             size="lg"

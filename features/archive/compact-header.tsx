@@ -1,8 +1,9 @@
 import { cx } from "../../components/ui/cx";
+import { DevLink } from "../../components/ui/dev-link";
 import { SegmentedControl } from "../../components/ui/segmented-control";
 import { useDictionary } from "../../i18n/locale-provider";
 import { useLocaleSwitch } from "../../i18n/locale-switch";
-import type { Locale } from "../../i18n/locales";
+import { type Locale, localePath } from "../../i18n/locales";
 import { type Domain, domainTitle, SORTS, type SortKey } from "./catalog";
 import type { View } from "./header";
 import type { SortDirection } from "./query";
@@ -70,6 +71,16 @@ export function CompactHeader({
         >
           {dict.header.editor}
         </button>
+        {process.env.NODE_ENV === "development" && (
+          <DevLink
+            size="adaptive"
+            href={localePath(localeSwitch.locale, "/relics/new")}
+            aria-label="New entry"
+            className="flex-none"
+          >
+            +
+          </DevLink>
+        )}
       </div>
       <div className="flex gap-2 px-4 pb-3 pt-2">
         <input
