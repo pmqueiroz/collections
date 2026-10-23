@@ -17,11 +17,15 @@ const VARIANT: Record<ButtonVariant, string> = {
   primary: "border-ink bg-ink text-paper hover:bg-ink-hover",
 };
 
+export function buttonShape(size: ButtonSize = "sm") {
+  return cx(BASE, SIZE[size]);
+}
+
 export function buttonClass(
   variant: ButtonVariant = "outline",
   size: ButtonSize = "sm",
 ) {
-  return cx(BASE, SIZE[size], VARIANT[variant]);
+  return cx(buttonShape(size), VARIANT[variant]);
 }
 
 type ButtonProps = ComponentProps<"button"> & {

@@ -18,6 +18,9 @@
   --color-ink-hover: #2a2a28;
   --color-muted: #6e6d6a;
   --color-faint: #a8a7a2;
+  --color-dev: #ffd60a;
+  --color-dev-hover: #f5c400;
+  --color-dev-line: #c99a00;
 
   --text-tag: 10.5px;
   --text-meta: 11px;
