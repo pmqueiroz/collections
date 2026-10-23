@@ -1,9 +1,74 @@
 import type { CSSProperties } from "react";
 import { clamp, perforationGrid, perforationMask, round2 } from "./geometry";
 import type { MeshProps } from "./surface-props";
-import { FaceImage, MonoText, Sheen } from "./surfaces";
+import { FaceImage, MonoText, Sheen, scanLabel } from "./surfaces";
 
 const STAMP_EXTENT = 168;
+
+function ObverseScan({
+  margin,
+  face,
+  origin,
+  loading = false,
+}: {
+  margin: number;
+  face: string;
+  origin: string;
+  loading?: boolean;
+}) {
+  return (
+    <>
+      <div className="absolute inset-0" style={{ background: "#E9E8E3" }} />
+      <div
+        className="absolute"
+        style={{
+          inset: margin,
+          background: "linear-gradient(170deg, #D4D3CD 0%, #C2C1BB 100%)",
+          boxShadow: "inset 0 0 0 1px rgba(22,22,21,0.12)",
+        }}
+      />
+      <div
+        className="absolute"
+        style={{
+          inset: margin,
+          background:
+            "repeating-linear-gradient(135deg, rgba(22,22,21,0.04) 0 1px, rgba(22,22,21,0) 1px 4px)",
+        }}
+      />
+      <div
+        className="absolute box-border flex flex-col justify-between overflow-hidden px-[7px] py-1.5 font-mono text-muted"
+        style={{ inset: margin }}
+      >
+        <div className="whitespace-nowrap text-[17px] font-medium tracking-[-0.03em]">
+          {face}
+        </div>
+        <div className="text-center text-[6.5px] tracking-[0.14em]">
+          OBV · {scanLabel(loading)}
+        </div>
+        <div className="overflow-hidden whitespace-nowrap text-[6.5px] uppercase tracking-[0.14em]">
+          {origin}
+        </div>
+      </div>
+      <Sheen strength={0.5} spread="60%" />
+    </>
+  );
+}
+
+function ReverseScan({ loading = false }: { loading?: boolean }) {
+  return (
+    <>
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(160deg, #E6E5E0 0%, #DCDBD5 100%)",
+        }}
+      />
+      <MonoText className="absolute bottom-4 left-0 right-0 text-center text-[6.5px] tracking-[0.14em]">
+        REV · {scanLabel(loading, "GUM")}
+      </MonoText>
+    </>
+  );
+}
 
 export function Stamp({
   geo,
@@ -42,47 +107,23 @@ export function Stamp({
       >
         {obv ? (
           <>
-            <FaceImage src={obv} fit={fo} backing="#E9E8E3" />
+            <FaceImage
+              src={obv}
+              fit={fo}
+              backing="#E9E8E3"
+              placeholder={(loading) => (
+                <ObverseScan
+                  margin={margin}
+                  face={face}
+                  origin={origin}
+                  loading={loading}
+                />
+              )}
+            />
             <Sheen strength={0.4} spread="60%" />
           </>
         ) : (
-          <>
-            <div
-              className="absolute inset-0"
-              style={{ background: "#E9E8E3" }}
-            />
-            <div
-              className="absolute"
-              style={{
-                inset: margin,
-                background: "linear-gradient(170deg, #D4D3CD 0%, #C2C1BB 100%)",
-                boxShadow: "inset 0 0 0 1px rgba(22,22,21,0.12)",
-              }}
-            />
-            <div
-              className="absolute"
-              style={{
-                inset: margin,
-                background:
-                  "repeating-linear-gradient(135deg, rgba(22,22,21,0.04) 0 1px, rgba(22,22,21,0) 1px 4px)",
-              }}
-            />
-            <div
-              className="absolute box-border flex flex-col justify-between overflow-hidden px-[7px] py-1.5 font-mono text-muted"
-              style={{ inset: margin }}
-            >
-              <div className="whitespace-nowrap text-[17px] font-medium tracking-[-0.03em]">
-                {face}
-              </div>
-              <div className="text-center text-[6.5px] tracking-[0.14em]">
-                OBV · SCAN
-              </div>
-              <div className="overflow-hidden whitespace-nowrap text-[6.5px] uppercase tracking-[0.14em]">
-                {origin}
-              </div>
-            </div>
-            <Sheen strength={0.5} spread="60%" />
-          </>
+          <ObverseScan margin={margin} face={face} origin={origin} />
         )}
       </div>
       {!flat && (
@@ -91,20 +132,14 @@ export function Stamp({
           style={{ ...sheet, transform: "rotateY(180deg) translateZ(0.4px)" }}
         >
           {rev ? (
-            <FaceImage src={rev} fit={fr} backing="#E3E2DC" />
+            <FaceImage
+              src={rev}
+              fit={fr}
+              backing="#E3E2DC"
+              placeholder={(loading) => <ReverseScan loading={loading} />}
+            />
           ) : (
-            <>
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(160deg, #E6E5E0 0%, #DCDBD5 100%)",
-                }}
-              />
-              <MonoText className="absolute bottom-4 left-0 right-0 text-center text-[6.5px] tracking-[0.14em]">
-                REV · GUM
-              </MonoText>
-            </>
+            <ReverseScan />
           )}
           <Sheen strength={0.6} spread="55%" />
         </div>

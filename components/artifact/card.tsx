@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { clamp, round2 } from "./geometry";
 import type { MeshProps } from "./surface-props";
-import { FaceImage, MonoText, Sheen } from "./surfaces";
+import { FaceImage, MonoText, Sheen, scanLabel } from "./surfaces";
 
 const CARD_WIDTH = 200;
 const EDGE_LAYERS = [-0.5, -0.25, 0, 0.25, 0.5];
@@ -33,6 +33,70 @@ function MetalChip({ style }: { style: CSSProperties }) {
         }}
       />
     </div>
+  );
+}
+
+function ObverseScan({
+  face,
+  code,
+  loading = false,
+}: {
+  face: string;
+  code: string;
+  loading?: boolean;
+}) {
+  return (
+    <>
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(155deg, #DAD9D3 0%, #C6C5BF 100%)",
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "repeating-linear-gradient(45deg, rgba(22,22,21,0.035) 0 1.5px, rgba(22,22,21,0) 1.5px 6px)",
+        }}
+      />
+      <MonoText className="absolute left-3.5 top-3 text-[7px] tracking-[0.14em]">
+        OBV · {scanLabel(loading)}
+      </MonoText>
+      <MonoText className="absolute right-3.5 top-3 text-[7px] tracking-[0.08em]">
+        {code}
+      </MonoText>
+      <MonoText className="absolute bottom-2 right-3.5 text-[32px] font-medium tracking-[-0.04em]">
+        {face}
+      </MonoText>
+    </>
+  );
+}
+
+function ReverseScan({
+  code,
+  loading = false,
+}: {
+  code: string;
+  loading?: boolean;
+}) {
+  return (
+    <>
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(200deg, #E2E1DB 0%, #D4D3CD 100%)",
+        }}
+      />
+      <div className="absolute left-3.5 right-3.5 top-3.5 flex flex-col gap-[5px]">
+        <div className="h-px bg-ink/14" />
+        <div className="h-px w-[70%] bg-ink/14" />
+        <div className="h-px w-[45%] bg-ink/14" />
+      </div>
+      <MonoText className="absolute bottom-3 left-3.5 text-[7px] tracking-[0.14em]">
+        REV · {scanLabel(loading)} · {code}
+      </MonoText>
+    </>
   );
 }
 
@@ -73,32 +137,16 @@ export function Card({ geo, obv, rev, fo, fr, face, code, flat }: MeshProps) {
         style={{ ...slab, transform: `translateZ(${half}px)` }}
       >
         {obv ? (
-          <FaceImage src={obv} fit={fo} backing="#D3D2CC" />
+          <FaceImage
+            src={obv}
+            fit={fo}
+            backing="#D3D2CC"
+            placeholder={(loading) => (
+              <ObverseScan face={face} code={code} loading={loading} />
+            )}
+          />
         ) : (
-          <>
-            <div
-              className="absolute inset-0"
-              style={{
-                background: "linear-gradient(155deg, #DAD9D3 0%, #C6C5BF 100%)",
-              }}
-            />
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "repeating-linear-gradient(45deg, rgba(22,22,21,0.035) 0 1.5px, rgba(22,22,21,0) 1.5px 6px)",
-              }}
-            />
-            <MonoText className="absolute left-3.5 top-3 text-[7px] tracking-[0.14em]">
-              OBV · SCAN
-            </MonoText>
-            <MonoText className="absolute right-3.5 top-3 text-[7px] tracking-[0.08em]">
-              {code}
-            </MonoText>
-            <MonoText className="absolute bottom-2 right-3.5 text-[32px] font-medium tracking-[-0.04em]">
-              {face}
-            </MonoText>
-          </>
+          <ObverseScan face={face} code={code} />
         )}
         {chip && <MetalChip style={chipStyle} />}
         <Sheen strength={0.5} />
@@ -112,25 +160,16 @@ export function Card({ geo, obv, rev, fo, fr, face, code, flat }: MeshProps) {
           }}
         >
           {rev ? (
-            <FaceImage src={rev} fit={fr} backing="#D3D2CC" />
+            <FaceImage
+              src={rev}
+              fit={fr}
+              backing="#D3D2CC"
+              placeholder={(loading) => (
+                <ReverseScan code={code} loading={loading} />
+              )}
+            />
           ) : (
-            <>
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(200deg, #E2E1DB 0%, #D4D3CD 100%)",
-                }}
-              />
-              <div className="absolute left-3.5 right-3.5 top-3.5 flex flex-col gap-[5px]">
-                <div className="h-px bg-ink/14" />
-                <div className="h-px w-[70%] bg-ink/14" />
-                <div className="h-px w-[45%] bg-ink/14" />
-              </div>
-              <MonoText className="absolute bottom-3 left-3.5 text-[7px] tracking-[0.14em]">
-                REV · SCAN · {code}
-              </MonoText>
-            </>
+            <ReverseScan code={code} />
           )}
           <Sheen strength={0.5} />
         </div>

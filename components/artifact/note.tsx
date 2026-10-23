@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { clamp, round2 } from "./geometry";
 import type { MeshProps, SurfaceProps } from "./surface-props";
-import { FaceImage, MonoText, Sheen } from "./surfaces";
+import { FaceImage, MonoText, Sheen, scanLabel } from "./surfaces";
 
 const STRIP_COUNT = 11;
 const STRIP_PITCH = 20;
@@ -30,10 +30,25 @@ function FrontFace({
   if (obv)
     return (
       <>
-        <FaceImage src={obv} fit={fo} backing="#D3D2CC" />
+        <FaceImage
+          src={obv}
+          fit={fo}
+          backing="#D3D2CC"
+          placeholder={(loading) => (
+            <FrontScan face={face} code={code} loading={loading} />
+          )}
+        />
         <Sheen strength={0.4} spread="60%" />
       </>
     );
+  return <FrontScan face={face} code={code} />;
+}
+
+function FrontScan({
+  face,
+  code,
+  loading = false,
+}: Pick<SurfaceProps, "face" | "code"> & { loading?: boolean }) {
   return (
     <>
       <div
@@ -62,7 +77,7 @@ function FrontFace({
         {face}
       </MonoText>
       <MonoText className="absolute bottom-[13px] left-4 text-[7px] tracking-[0.14em]">
-        OBV · SCAN · {code}
+        OBV · {scanLabel(loading)} · {code}
       </MonoText>
       <Sheen strength={0.5} spread="60%" />
     </>
@@ -78,10 +93,25 @@ function BackFace({
   if (rev)
     return (
       <>
-        <FaceImage src={rev} fit={fr} backing="#D3D2CC" />
+        <FaceImage
+          src={rev}
+          fit={fr}
+          backing="#D3D2CC"
+          placeholder={(loading) => (
+            <BackScan face={face} year={year} loading={loading} />
+          )}
+        />
         <Sheen strength={0.4} spread="60%" />
       </>
     );
+  return <BackScan face={face} year={year} />;
+}
+
+function BackScan({
+  face,
+  year,
+  loading = false,
+}: Pick<SurfaceProps, "face" | "year"> & { loading?: boolean }) {
   return (
     <>
       <div
@@ -103,7 +133,7 @@ function BackFace({
         {face}
       </MonoText>
       <MonoText className="absolute bottom-[13px] left-4 text-[7px] tracking-[0.14em]">
-        REV · SCAN · {year}
+        REV · {scanLabel(loading)} · {year}
       </MonoText>
       <Sheen strength={0.45} spread="60%" />
     </>

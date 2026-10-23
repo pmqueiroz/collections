@@ -21,19 +21,58 @@ export function Sheen({
   );
 }
 
+type LoadStatus = "loaded" | "failed";
+
+export function scanLabel(loading: boolean, idle = "SCAN") {
+  return loading ? "LOADING" : idle;
+}
+
+function LoadingSweep() {
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      <div
+        className="absolute inset-0 motion-safe:animate-scan-sweep"
+        style={{
+          background:
+            "linear-gradient(100deg, rgba(245,244,240,0) 25%, rgba(245,244,240,0.55) 50%, rgba(245,244,240,0) 75%)",
+        }}
+      />
+    </div>
+  );
+}
+
 export function FaceImage({
   src,
   fit,
   backing,
+  placeholder,
 }: {
   src: string;
   fit?: Fit;
   backing: string;
+  placeholder: (loading: boolean) => ReactNode;
 }) {
+  const [settled, setSettled] = useState<{ src: string; status: LoadStatus }>();
+  const status = settled?.src === src ? settled.status : "loading";
+
   return (
     <>
-      <div className="absolute inset-0" style={{ background: backing }} />
-      <FittedImage src={src} fit={fit} />
+      {status === "loaded" ? (
+        <div className="absolute inset-0" style={{ background: backing }} />
+      ) : (
+        <div className="absolute inset-0">
+          {placeholder(status === "loading")}
+          {status === "loading" && <LoadingSweep />}
+        </div>
+      )}
+      {status !== "failed" && (
+        <FittedImage
+          src={src}
+          fit={fit}
+          onLoad={() => setSettled({ src, status: "loaded" })}
+          onError={() => setSettled({ src, status: "failed" })}
+        />
+      )}
     </>
   );
 }
@@ -55,10 +94,14 @@ export function FittedImage({
   src,
   fit,
   className,
+  onLoad,
+  onError,
 }: {
   src: string;
   fit?: Partial<Fit>;
   className?: string;
+  onLoad?: () => void;
+  onError?: () => void;
 }) {
   const [natural, setNatural] = useState<{ src: string; aspect: number }>();
   const aspect = natural?.src === src ? natural.aspect : null;
@@ -83,7 +126,9 @@ export function FittedImage({
             const { naturalWidth, naturalHeight } = event.currentTarget;
             if (naturalWidth && naturalHeight)
               setNatural({ src, aspect: naturalWidth / naturalHeight });
+            onLoad?.();
           }}
+          onError={onError}
         />
       </div>
     </div>
