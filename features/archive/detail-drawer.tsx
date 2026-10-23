@@ -114,8 +114,7 @@ export function DetailDrawer({
         aria-hidden
         onClick={onClose}
         className={cx(
-          "fixed inset-0 z-40 transition-opacity duration-300",
-          compact ? "bg-transparent" : "bg-ink/6",
+          "fixed inset-0 z-40 bg-ink/16 transition-opacity duration-300",
           open
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0",
