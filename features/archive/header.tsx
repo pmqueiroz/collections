@@ -1,6 +1,8 @@
 import { Button } from "../../components/ui/button";
 import { SegmentedControl } from "../../components/ui/segmented-control";
 import { TabButton } from "../../components/ui/tab-button";
+import { useDictionary } from "../../i18n/locale-provider";
+import { LocaleSwitch } from "../../i18n/locale-switch";
 import { DOMAINS, type Domain, SORTS, type SortKey } from "./catalog";
 import type { SortDirection } from "./query";
 
@@ -31,11 +33,6 @@ export function sortArrow(
   return direction > 0 ? "↑" : "↓";
 }
 
-const VIEWS: { value: View; label: string }[] = [
-  { value: "list", label: "Index List" },
-  { value: "grid", label: "Artifact Grid" },
-];
-
 export function Header({
   shown,
   total,
@@ -51,11 +48,16 @@ export function Header({
   onView,
   onTextureEditor,
 }: HeaderProps) {
+  const dict = useDictionary();
+  const views: { value: View; label: string }[] = [
+    { value: "list", label: dict.header.listView },
+    { value: "grid", label: dict.header.gridView },
+  ];
   return (
     <header className="sticky top-0 z-20 hidden border-b border-line bg-paper pt-safe regular:block">
       <div className="flex flex-wrap items-center gap-x-7 gap-y-3 px-7 py-3.5">
         <div className="flex items-baseline gap-2.5">
-          <h1 className="text-sm font-semibold">Master Index</h1>
+          <h1 className="text-sm font-semibold">{dict.site.name}</h1>
           <div className="mono text-control text-faint">
             {shown} / {total}
           </div>
@@ -64,14 +66,14 @@ export function Header({
         <nav className="flex gap-0.5">
           {DOMAINS.map((option) => (
             <TabButton
-              key={option.value}
-              active={domain === option.value}
-              onClick={() => onDomain(option.value)}
+              key={option}
+              active={domain === option}
+              onClick={() => onDomain(option)}
             >
               <span className="flex items-baseline gap-1.5">
-                <span>{option.label}</span>
+                <span>{dict.domain[option]}</span>
                 <span className="mono text-meta text-faint">
-                  {counts[option.value]}
+                  {counts[option]}
                 </span>
               </span>
             </TabButton>
@@ -79,38 +81,41 @@ export function Header({
         </nav>
 
         <div className="flex items-center gap-0.5">
-          <div className="pr-2 mono text-meta text-faint">Sort</div>
+          <div className="pr-2 mono text-meta text-faint">
+            {dict.header.sort}
+          </div>
           {SORTS.map((option) => (
             <TabButton
-              key={option.value}
-              active={sort === option.value}
-              onClick={() => onSort(option.value)}
+              key={option}
+              active={sort === option}
+              onClick={() => onSort(option)}
               className="items-center gap-1 px-[9px]"
             >
-              <span>{option.label}</span>
+              <span>{dict.sort[option]}</span>
               <span className="w-2 mono text-meta">
-                {sortArrow(option.value, sort, direction)}
+                {sortArrow(option, sort, direction)}
               </span>
             </TabButton>
           ))}
           <input
             value={query}
             onChange={(event) => onQuery(event.target.value)}
-            placeholder="Search catalog"
-            aria-label="Search catalog"
+            placeholder={dict.header.search}
+            aria-label={dict.header.search}
             spellCheck={false}
             className="ml-2.5 box-border h-[30px] w-[200px] rounded-xs border border-line bg-surface px-2.5 mono text-xs text-ink outline-none"
           />
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <Button onClick={onTextureEditor}>Texture editor</Button>
+          <Button onClick={onTextureEditor}>{dict.header.textureEditor}</Button>
           <SegmentedControl
             size="lg"
-            options={VIEWS}
+            options={views}
             value={view}
             onChange={onView}
           />
+          <LocaleSwitch size="lg" />
         </div>
       </div>
     </header>

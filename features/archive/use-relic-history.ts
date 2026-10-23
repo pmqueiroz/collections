@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useRef } from "react";
+import { useLocale } from "../../i18n/locale-provider";
+import { localePath } from "../../i18n/locales";
+import { relicPagePath } from "./artifact-config";
 
 const DRAWER_ENTRY = "relicDrawer";
-const INDEX_PATH = "/";
-const RELIC_PATH = /^\/relics\/([^/]+)\/?$/;
-
-export function relicPagePath(id: string) {
-  return `/relics/${encodeURIComponent(id)}`;
-}
+const RELIC_PATH = /^\/[^/]+\/relics\/([^/]+)\/?$/;
 
 function relicIdFromPath(pathname: string) {
   const match = RELIC_PATH.exec(pathname);
@@ -28,6 +26,7 @@ function replacePath(path: string) {
 }
 
 export function useRelicHistory(onRoute: (id: string | null) => void) {
+  const locale = useLocale();
   const handler = useRef(onRoute);
   handler.current = onRoute;
 
@@ -44,14 +43,14 @@ export function useRelicHistory(onRoute: (id: string | null) => void) {
         window.history.pushState(
           { [DRAWER_ENTRY]: true },
           "",
-          `${relicPagePath(id)}${window.location.search}${window.location.hash}`,
+          `${relicPagePath(locale, id)}${window.location.search}${window.location.hash}`,
         ),
-      show: (id: string) => replacePath(relicPagePath(id)),
+      show: (id: string) => replacePath(relicPagePath(locale, id)),
       close: () => {
         if (isDrawerEntry()) window.history.back();
-        else replacePath(INDEX_PATH);
+        else replacePath(localePath(locale));
       },
     }),
-    [],
+    [locale],
   );
 }

@@ -1,4 +1,5 @@
 import { cx } from "../../components/ui/cx";
+import { useDictionary } from "../../i18n/locale-provider";
 import { DOMAINS, type Domain } from "./catalog";
 import { DomainGlyph } from "./domain-glyph";
 
@@ -13,6 +14,7 @@ export function DomainTabBar({
   onDomain,
   className,
 }: DomainTabBarProps) {
+  const dict = useDictionary();
   return (
     <nav
       className={cx(
@@ -21,20 +23,20 @@ export function DomainTabBar({
       )}
     >
       {DOMAINS.map((option) => {
-        const active = option.value === domain;
+        const active = option === domain;
         return (
           <button
             type="button"
-            key={option.value}
+            key={option}
             aria-pressed={active}
-            onClick={() => onDomain(option.value)}
+            onClick={() => onDomain(option)}
             className={cx(
               "flex h-[54px] cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent p-0 text-tag font-medium tracking-[-0.01em]",
               active ? "text-ink" : "text-faint",
             )}
           >
-            <DomainGlyph domain={option.value} active={active} />
-            <span>{option.label}</span>
+            <DomainGlyph domain={option} active={active} />
+            <span>{dict.domain[option]}</span>
           </button>
         );
       })}

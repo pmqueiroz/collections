@@ -8,7 +8,6 @@ import type {
   FaceSide,
   Geometry,
 } from "../../../components/artifact/types";
-import { KIND_LABEL } from "../catalog";
 
 const DPI = 600;
 const PAD_MM = 6;
@@ -28,6 +27,7 @@ export function downloadTemplate(
   kind: ArtifactKind,
   geo: Geometry,
   side: FaceSide,
+  title: string,
 ) {
   const [widthMm, heightMm] = templateDimensions(kind, geo);
   const ppm = DPI / 25.4;
@@ -134,9 +134,8 @@ export function downloadTemplate(
     kind === "coin"
       ? `Ø ${widthMm.toFixed(2)} mm`
       : `${widthMm.toFixed(2)} × ${heightMm.toFixed(2)} mm`;
-  const sideLabel = side === "obv" ? "OBVERSE" : "REVERSE";
   ctx.fillText(
-    `${KIND_LABEL[kind].toUpperCase()} · ${sideLabel} · ${dims} · ${DPI} dpi`,
+    `${title.toUpperCase()} · ${dims} · ${DPI} dpi`,
     ox,
     canvasHeight - 3 * ppm,
   );

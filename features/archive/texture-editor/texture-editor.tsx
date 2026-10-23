@@ -21,7 +21,8 @@ import { cx } from "../../../components/ui/cx";
 import { RangeField } from "../../../components/ui/range-field";
 import { SectionLabel } from "../../../components/ui/section-label";
 import { SegmentedControl } from "../../../components/ui/segmented-control";
-import { KIND_LABEL, KINDS, kindGeometry } from "../catalog";
+import { useDictionary } from "../../../i18n/locale-provider";
+import { KINDS, kindGeometry } from "../catalog";
 import { RELIC_EXTENSION, RELIC_MIME } from "../relic/relic-file";
 import { downloadTemplate } from "./download-template";
 import { FaceEditor } from "./face-editor";
@@ -50,11 +51,6 @@ type TextureEditorProps = {
 
 const FIT_KEY: Record<FaceSide, "fo" | "fr"> = { obv: "fo", rev: "fr" };
 
-const KIND_OPTIONS = KINDS.map((value) => ({
-  value,
-  label: KIND_LABEL[value],
-}));
-
 const SHEET_BUTTON =
   "h-11 cursor-pointer whitespace-nowrap border-0 bg-transparent px-3 text-touch tracking-ui text-ink";
 
@@ -67,6 +63,12 @@ export function TextureEditor({
   const [side, setSide] = useState<FaceSide>("obv");
   const [spinning, setSpinning] = useState(false);
   const [status, setStatus] = useState("");
+  const dict = useDictionary();
+  const text = dict.editor;
+  const kindOptions = KINDS.map((value) => ({
+    value,
+    label: dict.kind[value],
+  }));
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
 
@@ -81,7 +83,7 @@ export function TextureEditor({
   const fitKey = FIT_KEY[side];
   const fit = draft[fitKey];
   const image = draft[side];
-  const sideLabel = side === "obv" ? "obverse" : "reverse";
+  const sideLabel = text.side[side];
 
   const setGeo = <K extends keyof Geometry>(key: K, value: Geometry[K]) =>
     setDraft((current) => ({
@@ -105,10 +107,14 @@ export function TextureEditor({
         [fitKey]: { ...DEFAULT_FIT },
       }));
       setStatus(
-        `${side} · ${result.width}×${result.height} px · ${result.kilobytes} kB · unsaved`,
+        text.status.ingested(
+          side,
+          `${result.width}×${result.height}`,
+          result.kilobytes,
+        ),
       );
     } catch {
-      setStatus("unreadable image");
+      setStatus(text.status.unreadable);
     }
   };
 
@@ -127,7 +133,7 @@ export function TextureEditor({
     if (!file) return;
     try {
       setDraft(await openTexture(file));
-      setStatus(`opened ${file.name}`);
+      setStatus(text.status.opened(file.name));
     } catch (error) {
       setStatus(`${file.name} · ${(error as Error).message}`);
     }
@@ -136,7 +142,7 @@ export function TextureEditor({
   const download = async () => {
     try {
       await downloadTexture(draft);
-      setStatus(`downloaded ${textureFileName(draft)}`);
+      setStatus(text.status.downloaded(textureFileName(draft)));
     } catch (error) {
       setStatus((error as Error).message);
     }
@@ -144,15 +150,15 @@ export function TextureEditor({
 
   const clear = () => {
     setDraft(blankTexture(draft.kind));
-    setStatus("cleared");
+    setStatus(text.status.cleared);
   };
 
   const entryId = catalogId(draft);
   const statusText =
-    status || (entryId ? `${entryId} · draft` : "draft · download to export");
+    status || (entryId ? text.status.entryDraft(entryId) : text.status.draft);
   const openButton = (
     <label className={cx(buttonClass("outline", "adaptive"), "box-border")}>
-      Open…
+      {text.open}
       <input
         type="file"
         accept={`${RELIC_EXTENSION},${RELIC_MIME}`}
@@ -177,7 +183,7 @@ export function TextureEditor({
       <div
         role="dialog"
         aria-modal
-        aria-label="Texture editor"
+        aria-label={text.title}
         className={cx(
           "relative flex flex-col overflow-hidden border border-line bg-paper shadow-modal transition-[translate,scale,opacity] duration-450 ease-drawer",
           compact
@@ -194,14 +200,14 @@ export function TextureEditor({
                 onClick={onClose}
                 className={cx(SHEET_BUTTON, "justify-self-start")}
               >
-                Close
+                {text.close}
               </button>
               <div className="flex flex-col items-center gap-px">
                 <div className="whitespace-nowrap text-heading font-semibold">
-                  Texture editor
+                  {text.title}
                 </div>
                 <div className="whitespace-nowrap mono text-meta text-muted">
-                  {KIND_LABEL[draft.kind]}
+                  {dict.kind[draft.kind]}
                 </div>
               </div>
               <button
@@ -209,13 +215,13 @@ export function TextureEditor({
                 onClick={download}
                 className={cx(SHEET_BUTTON, "justify-self-end font-semibold")}
               >
-                Download
+                {text.download}
               </button>
             </div>
             <div className="flex w-full px-4 pb-2.5">
               <SegmentedControl
                 size="fill"
-                options={KIND_OPTIONS}
+                options={kindOptions}
                 value={draft.kind}
                 onChange={setKind}
                 disabled={entryId !== null}
@@ -224,18 +230,18 @@ export function TextureEditor({
           </div>
         ) : (
           <div className="flex items-center gap-3 border-b border-line px-5 py-3">
-            <div className="text-heading font-medium">Texture editor</div>
+            <div className="text-heading font-medium">{text.title}</div>
             <SegmentedControl
               size="md"
-              options={KIND_OPTIONS}
+              options={kindOptions}
               value={draft.kind}
               onChange={setKind}
               disabled={entryId !== null}
             />
             <div className="mr-auto mono text-tag uppercase tracking-label text-faint">
-              Texture · Mesh
+              {text.sections}
             </div>
-            <Button onClick={onClose}>Close · Esc</Button>
+            <Button onClick={onClose}>{text.close} · Esc</Button>
           </div>
         )}
 
@@ -251,7 +257,7 @@ export function TextureEditor({
                 {...draft}
                 textured={false}
                 face=""
-                code={KIND_LABEL[draft.kind]}
+                code={dict.kind[draft.kind]}
                 year=""
                 origin=""
                 mode="orbit"
@@ -261,13 +267,13 @@ export function TextureEditor({
                 fit={270}
               />
               <div className="pointer-events-none absolute left-3.5 top-3 mono text-tag text-faint">
-                live · draft
+                {text.live}
               </div>
               <Button
                 onClick={() => setSpinning((value) => !value)}
                 className="absolute bottom-3 right-3"
               >
-                {spinning ? "❚❚ Hold" : "▶ Orbit"}
+                {spinning ? `❚❚ ${text.hold}` : `▶ ${text.orbit}`}
               </Button>
             </div>
             <div className="flex flex-none flex-col gap-3 px-5 pb-4 pt-3.5">
@@ -280,7 +286,7 @@ export function TextureEditor({
                     value,
                     label: (
                       <>
-                        {value === "obv" ? "Obverse" : "Reverse"}
+                        {dict.side[value]}
                         <span className="text-[9px]">
                           {draft[value] ? "■" : "□"}
                         </span>
@@ -290,7 +296,7 @@ export function TextureEditor({
                 />
                 <div className="ml-auto flex flex-wrap gap-1.5">
                   <label className={cx(buttonClass(), "box-border")}>
-                    Image…
+                    {text.image}
                     <input
                       type="file"
                       accept="image/*"
@@ -304,14 +310,19 @@ export function TextureEditor({
                     }
                     className={image ? "text-ink" : "text-faint"}
                   >
-                    Remove
+                    {text.remove}
                   </Button>
                   <Button
                     onClick={() =>
-                      downloadTemplate(draft.kind, draft.geo, side)
+                      downloadTemplate(
+                        draft.kind,
+                        draft.geo,
+                        side,
+                        `${dict.kind[draft.kind]} · ${dict.side[side]}`,
+                      )
                     }
                   >
-                    Template ↓
+                    {text.template} ↓
                   </Button>
                 </div>
               </div>
@@ -321,7 +332,7 @@ export function TextureEditor({
                 image={image}
                 fit={fit}
                 sideLabel={sideLabel}
-                hint={compact ? "drag · drop" : "drag · scroll · drop"}
+                hint={compact ? text.hintTouch : text.hintPointer}
                 onFit={setFit}
                 onFile={ingest}
               />
@@ -330,11 +341,13 @@ export function TextureEditor({
 
           <div className="flex flex-col gap-[22px] px-5 pb-6 pt-3.5 split:min-h-0 split:overflow-y-auto">
             <div className="flex flex-col">
-              <SectionLabel className="pb-2">Fit · {sideLabel}</SectionLabel>
+              <SectionLabel className="pb-2">
+                {text.fit} · {sideLabel}
+              </SectionLabel>
               {FIT_FIELDS.map((field) => (
                 <RangeField
                   key={field.key}
-                  label={field.label}
+                  label={text.fitField[field.key]}
                   min={field.min}
                   max={field.max}
                   step={field.step}
@@ -345,12 +358,12 @@ export function TextureEditor({
             </div>
             <div className="flex flex-col">
               <SectionLabel className="pb-2">
-                Mesh · {KIND_LABEL[draft.kind]}
+                {text.mesh} · {dict.kind[draft.kind]}
               </SectionLabel>
               {GEOMETRY_FIELDS[draft.kind].map((field) => (
                 <RangeField
                   key={field.key}
-                  label={field.label}
+                  label={text.geometryField[field.key]}
                   min={field.min}
                   max={field.max}
                   step={field.step}
@@ -364,19 +377,25 @@ export function TextureEditor({
                   className="grid h-12 grid-cols-[92px_minmax(0,1fr)] items-center gap-3 border-b border-line regular:h-9"
                 >
                   <div className="mono text-tag uppercase text-muted">
-                    {option.label}
+                    {text.option[option.key]}
                   </div>
                   {option.key === "edge" ? (
                     <SegmentedControl
                       className="justify-self-start"
-                      options={option.choices}
+                      options={option.choices.map((choice) => ({
+                        value: choice.value,
+                        label: text.choice[choice.label],
+                      }))}
                       value={draft.geo.edge ?? "reeded"}
                       onChange={(value) => setGeo("edge", value)}
                     />
                   ) : (
                     <SegmentedControl
                       className="justify-self-start"
-                      options={option.choices}
+                      options={option.choices.map((choice) => ({
+                        value: choice.value,
+                        label: text.choice[choice.label],
+                      }))}
                       value={draft.geo.chip !== false}
                       onChange={(value) => setGeo("chip", value)}
                     />
@@ -392,7 +411,7 @@ export function TextureEditor({
                     }))
                   }
                 >
-                  Mesh defaults
+                  {text.meshDefaults}
                 </Button>
               </div>
             </div>
@@ -411,13 +430,13 @@ export function TextureEditor({
           <div className="ml-auto flex gap-1.5">
             {openButton}
             <Button size="adaptive" onClick={clear}>
-              Clear
+              {text.clear}
             </Button>
             {!compact && (
               <>
-                <Button onClick={onClose}>Close</Button>
+                <Button onClick={onClose}>{text.close}</Button>
                 <Button variant="primary" onClick={download}>
-                  Download
+                  {text.download}
                 </Button>
               </>
             )}

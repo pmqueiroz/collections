@@ -8,6 +8,7 @@ import {
   FINE_HOVER_QUERY,
   useMediaQuery,
 } from "../../components/ui/use-media-query";
+import { useDictionary } from "../../i18n/locale-provider";
 import {
   type CatalogItem,
   type Domain,
@@ -63,11 +64,12 @@ export function ArchiveIndex({
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const compact = useMediaQuery(COMPACT_QUERY);
   const fineHover = useMediaQuery(FINE_HOVER_QUERY, true);
+  const dict = useDictionary();
 
   const counts = useMemo(() => domainCounts(catalog), [catalog]);
   const items = useMemo(
-    () => queryCatalog(catalog, domain, sort, direction, query),
-    [catalog, domain, sort, direction, query],
+    () => queryCatalog(catalog, domain, sort, direction, query, dict.kind),
+    [catalog, domain, sort, direction, query, dict],
   );
   const selected =
     catalog.find((item) => item.id === selectedId) ?? items[0] ?? catalog[0];
@@ -251,10 +253,10 @@ export function ArchiveIndex({
         {items.length === 0 ? (
           <div className="flex flex-col items-start gap-3 px-4 py-12 regular:px-7 regular:py-16">
             <div className="mono text-cell text-faint">
-              No records match “{query}”.
+              {dict.empty.noMatch(query)}
             </div>
             <Button size="adaptive" onClick={() => setQuery("")}>
-              Clear search
+              {dict.empty.clear}
             </Button>
           </div>
         ) : view === "list" ? (
@@ -295,7 +297,7 @@ export function ArchiveIndex({
       <DetailDrawer
         open={open}
         compact={compact}
-        backLabel={domainTitle(domain)}
+        backLabel={domainTitle(domain, dict)}
         position={`${selectedIndex < 0 ? "–" : selectedIndex + 1} / ${items.length}`}
         item={selected}
         onClose={closeDetail}

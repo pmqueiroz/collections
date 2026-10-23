@@ -1,12 +1,10 @@
+import type { Dictionary } from "../../i18n/dictionary";
 import {
   CARD_DIMENSIONS,
   type CatalogItem,
-  CONDITION_NAME,
   type Domain,
   itemField,
   itemYear,
-  KIND_LABEL,
-  MESH_LABEL,
   type SortKey,
 } from "./catalog";
 
@@ -20,9 +18,11 @@ export type CellType =
   | "mono"
   | "mono2";
 
+type ColumnLabel = keyof Dictionary["columns"];
+
 export type Column = {
   field: string;
-  label: string;
+  label: ColumnLabel;
   track: string;
   type: CellType;
   sort?: SortKey;
@@ -41,7 +41,7 @@ export const CELL_CLASS: Record<CellType, string> = {
 
 function column(
   field: string,
-  label: string,
+  label: ColumnLabel,
   track: string,
   type: CellType,
   sort?: SortKey,
@@ -49,64 +49,64 @@ function column(
   return { field, label, track, type, sort };
 }
 
-const ID = column("id", "Catalog ID", "112px", "id", "id");
+const ID = column("id", "id", "112px", "id", "id");
 
 export const COLUMNS: Record<Domain, Column[]> = {
   all: [
     ID,
-    column("title", "Designation", "minmax(0,2.4fr)", "title"),
-    column("kindLabel", "Domain", "92px", "meta"),
-    column("iso", "ISO", "40px", "code", "origin"),
-    column("origin", "Origin", "minmax(0,1.2fr)", "text"),
-    column("year", "Year", "48px", "mono", "year"),
-    column("cond", "Cond", "52px", "mono", "cond"),
+    column("title", "title", "minmax(0,2.4fr)", "title"),
+    column("kindLabel", "domain", "92px", "meta"),
+    column("iso", "iso", "40px", "code", "origin"),
+    column("origin", "origin", "minmax(0,1.2fr)", "text"),
+    column("year", "year", "48px", "mono", "year"),
+    column("cond", "cond", "52px", "mono", "cond"),
   ],
   coin: [
     ID,
-    column("title", "Designation", "minmax(0,1.6fr)", "title"),
-    column("denom", "Denom", "52px", "num"),
-    column("cur", "Cur", "36px", "code"),
-    column("iso", "ISO", "36px", "code", "origin"),
-    column("year", "Minted", "52px", "mono", "year"),
-    column("mint", "Mint", "minmax(0,1fr)", "meta"),
-    column("metal", "Metal", "minmax(0,1.1fr)", "meta"),
-    column("dia", "Ø mm", "52px", "num"),
-    column("wt", "Wt g", "48px", "num"),
-    column("cond", "Cond", "40px", "mono", "cond"),
+    column("title", "title", "minmax(0,1.6fr)", "title"),
+    column("denom", "denom", "52px", "num"),
+    column("cur", "cur", "36px", "code"),
+    column("iso", "iso", "36px", "code", "origin"),
+    column("year", "minted", "52px", "mono", "year"),
+    column("mint", "mint", "minmax(0,1fr)", "meta"),
+    column("metal", "metal", "minmax(0,1.1fr)", "meta"),
+    column("dia", "dia", "52px", "num"),
+    column("wt", "wt", "48px", "num"),
+    column("cond", "cond", "40px", "mono", "cond"),
   ],
   note: [
     ID,
-    column("title", "Designation", "minmax(0,1.6fr)", "title"),
-    column("denom", "Denom", "52px", "num"),
-    column("cur", "Cur", "36px", "code"),
-    column("iso", "ISO", "36px", "code", "origin"),
-    column("year", "Issued", "52px", "mono", "year"),
-    column("series", "Series", "minmax(0,1fr)", "meta"),
-    column("printer", "Printer", "minmax(0,1.3fr)", "meta"),
-    column("size", "Size mm", "76px", "mono2"),
-    column("cond", "Cond", "40px", "mono", "cond"),
+    column("title", "title", "minmax(0,1.6fr)", "title"),
+    column("denom", "denom", "52px", "num"),
+    column("cur", "cur", "36px", "code"),
+    column("iso", "iso", "36px", "code", "origin"),
+    column("year", "issued", "52px", "mono", "year"),
+    column("series", "series", "minmax(0,1fr)", "meta"),
+    column("printer", "printer", "minmax(0,1.3fr)", "meta"),
+    column("size", "size", "76px", "mono2"),
+    column("cond", "cond", "40px", "mono", "cond"),
   ],
   card: [
     ID,
-    column("title", "Designation", "minmax(0,1.8fr)", "title"),
-    column("iso", "ISO", "36px", "code", "origin"),
-    column("issuer", "Issuer", "minmax(0,1.2fr)", "meta"),
-    column("units", "Units", "72px", "mono"),
-    column("chip", "Chip", "minmax(0,1.3fr)", "mono2"),
-    column("year", "Issued", "52px", "mono", "year"),
-    column("cond", "Cond", "44px", "mono", "cond"),
+    column("title", "title", "minmax(0,1.8fr)", "title"),
+    column("iso", "iso", "36px", "code", "origin"),
+    column("issuer", "issuer", "minmax(0,1.2fr)", "meta"),
+    column("units", "units", "72px", "mono"),
+    column("chip", "chip", "minmax(0,1.3fr)", "mono2"),
+    column("year", "issued", "52px", "mono", "year"),
+    column("cond", "cond", "44px", "mono", "cond"),
   ],
   stamp: [
     ID,
-    column("title", "Designation", "minmax(0,1.8fr)", "title"),
-    column("denom", "Face", "48px", "num"),
-    column("cur", "Cur", "36px", "code"),
-    column("iso", "ISO", "36px", "code", "origin"),
-    column("year", "Issued", "52px", "mono", "year"),
-    column("perf", "Perf", "76px", "mono2"),
-    column("printing", "Printing", "minmax(0,1fr)", "meta"),
-    column("size", "Size mm", "88px", "mono2"),
-    column("cond", "Cond", "44px", "mono", "cond"),
+    column("title", "title", "minmax(0,1.8fr)", "title"),
+    column("denom", "face", "48px", "num"),
+    column("cur", "cur", "36px", "code"),
+    column("iso", "iso", "36px", "code", "origin"),
+    column("year", "issued", "52px", "mono", "year"),
+    column("perf", "perf", "76px", "mono2"),
+    column("printing", "printing", "minmax(0,1fr)", "meta"),
+    column("size", "size", "88px", "mono2"),
+    column("cond", "cond", "44px", "mono", "cond"),
   ],
 };
 
@@ -118,8 +118,8 @@ export const MIN_TABLE_WIDTH: Record<Domain, number> = {
   stamp: 1100,
 };
 
-export function cellValue(item: CatalogItem, field: string) {
-  if (field === "kindLabel") return KIND_LABEL[item.kind];
+export function cellValue(item: CatalogItem, field: string, dict: Dictionary) {
+  if (field === "kindLabel") return dict.kind[item.kind];
   return String(itemField(item, field) ?? "—");
 }
 
@@ -129,57 +129,58 @@ function withUnit(value: string, unit: string) {
   return value === "—" ? value : `${value} ${unit}`;
 }
 
-function kindSpec(item: CatalogItem): [string, string][] {
+type SpecLabel = keyof Dictionary["spec"];
+
+function kindSpec(item: CatalogItem): [SpecLabel, string][] {
   switch (item.kind) {
     case "coin":
       return [
-        ["Denomination", `${item.denom} ${item.cur}`],
-        ["Mint", item.mint],
-        ["Metal", item.metal],
-        ["Diameter", withUnit(item.dia, "mm")],
-        ["Thickness", withUnit(item.thk, "mm")],
-        ["Weight", withUnit(item.wt, "g")],
-        ["Edge", item.edge],
+        ["denomination", `${item.denom} ${item.cur}`],
+        ["mint", item.mint],
+        ["metal", item.metal],
+        ["diameter", withUnit(item.dia, "mm")],
+        ["thickness", withUnit(item.thk, "mm")],
+        ["weight", withUnit(item.wt, "g")],
+        ["edge", item.edge],
       ];
     case "note":
       return [
-        ["Denomination", `${item.denom} ${item.cur}`],
-        ["Series", item.series],
-        ["Printer", item.printer],
-        ["Size", `${item.size} mm`],
-        ["Substrate", item.paper],
+        ["denomination", `${item.denom} ${item.cur}`],
+        ["series", item.series],
+        ["printer", item.printer],
+        ["size", `${item.size} mm`],
+        ["substrate", item.paper],
       ];
     case "card":
       return [
-        ["Issuer", item.issuer],
-        ["Units", item.units],
-        ["Chip", item.chip],
-        ["Dimensions", CARD_DIMENSIONS],
-        ["Material", "PVC"],
+        ["issuer", item.issuer],
+        ["units", item.units],
+        ["chip", item.chip],
+        ["dimensions", CARD_DIMENSIONS],
+        ["material", "PVC"],
       ];
     case "stamp":
       return [
-        ["Face value", `${item.denom} ${item.cur}`],
-        ["Perforation", item.perf],
-        ["Printing", item.printing],
-        ["Size", `${item.size} mm`],
-        ["Paper", item.paper],
+        ["faceValue", `${item.denom} ${item.cur}`],
+        ["perforation", item.perf],
+        ["printing", item.printing],
+        ["size", `${item.size} mm`],
+        ["paper", item.paper],
       ];
   }
 }
 
-export function specRows(item: CatalogItem): SpecRow[] {
-  const yearLabel = item.kind === "coin" ? "Mint year" : "Issue year";
-  const rows: [string, string][] = [
-    ["Catalog ID", item.id],
-    ["Domain", KIND_LABEL[item.kind]],
-    ["Designation", item.title],
-    ["Origin", `${item.origin} · ${item.iso}`],
-    [yearLabel, itemYear(item)],
-    ["Quantity", String(item.amount)],
-    ["Condition", `${item.cond} — ${CONDITION_NAME[item.cond]}`],
+export function specRows(item: CatalogItem, dict: Dictionary): SpecRow[] {
+  const rows: [SpecLabel, string][] = [
+    ["id", item.id],
+    ["domain", dict.kind[item.kind]],
+    ["title", item.title],
+    ["origin", `${item.origin} · ${item.iso}`],
+    [item.kind === "coin" ? "mintYear" : "issueYear", itemYear(item)],
+    ["amount", String(item.amount)],
+    ["cond", `${item.cond} — ${dict.condition[item.cond]}`],
     ...kindSpec(item),
-    ["Mesh", MESH_LABEL[item.kind]],
+    ["mesh", dict.mesh[item.kind]],
   ];
-  return rows.map(([label, value]) => ({ label, value }));
+  return rows.map(([label, value]) => ({ label: dict.spec[label], value }));
 }

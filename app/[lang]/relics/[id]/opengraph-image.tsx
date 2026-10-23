@@ -1,19 +1,19 @@
 import { ImageResponse } from "next/og";
 import sharp from "sharp";
-import type { ArtifactKind } from "../../../components/artifact/types";
+import type { ArtifactKind } from "../../../../components/artifact/types";
 import {
   type CatalogItem,
   itemSubtitle,
   itemYear,
-  KIND_LABEL,
-} from "../../../features/archive/catalog";
+} from "../../../../features/archive/catalog";
 import {
   loadCatalog,
   loadCatalogItem,
   readRelicAsset,
-} from "../../../features/archive/relic/load-catalog";
+} from "../../../../features/archive/relic/load-catalog";
+import { dictionaryFor } from "../../../../i18n/dictionary";
+import { DEFAULT_LOCALE, hasLocale } from "../../../../i18n/locales";
 
-export const alt = "Master Index relic";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -67,13 +67,25 @@ function Silhouette({ kind }: { kind: ArtifactKind }) {
   );
 }
 
+export async function generateImageMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  const dict = dictionaryFor(hasLocale(lang) ? lang : DEFAULT_LOCALE);
+  return [{ id: "card", alt: dict.site.relicAlt, size, contentType }];
+}
+
 export default async function Image({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ lang: string; id: string }>;
 }) {
-  const item = await loadCatalogItem((await params).id);
-  if (!item) return new Response(null, { status: 404 });
+  const { lang, id } = await params;
+  const item = await loadCatalogItem(id);
+  if (!item || !hasLocale(lang)) return new Response(null, { status: 404 });
+  const dict = dictionaryFor(lang);
   const image = await faceImage(item);
 
   return new ImageResponse(
@@ -119,7 +131,7 @@ export default async function Image({
             color: MUTED,
           }}
         >
-          {`${KIND_LABEL[item.kind]} · ${item.origin} · ${itemYear(item)}`}
+          {`${dict.kind[item.kind]} · ${item.origin} · ${itemYear(item)}`}
         </div>
         <div
           style={{
@@ -148,7 +160,7 @@ export default async function Image({
           }}
         >
           <span>{item.id}</span>
-          <span style={{ color: FAINT }}>Master Index</span>
+          <span style={{ color: FAINT }}>{dict.site.name}</span>
         </div>
       </div>
     </div>,

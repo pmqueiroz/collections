@@ -4,8 +4,9 @@ import { Button } from "../../components/ui/button";
 import { cx } from "../../components/ui/cx";
 import { SectionLabel } from "../../components/ui/section-label";
 import { SegmentedControl } from "../../components/ui/segmented-control";
+import { useDictionary } from "../../i18n/locale-provider";
 import { artifactProps } from "./artifact-config";
-import { type CatalogItem, itemYear, KIND_LABEL } from "./catalog";
+import { type CatalogItem, itemYear } from "./catalog";
 import { specRows } from "./columns";
 
 export const ZOOM_MIN = 0.6;
@@ -30,11 +31,6 @@ type DetailDrawerProps = {
   resetKey: number;
   onReset: () => void;
 };
-
-const SIDES = [
-  { value: false, label: "Obverse" },
-  { value: true, label: "Reverse" },
-];
 
 const EDGE_SWIPE_ZONE = 18;
 const SWIPE_CLOSE_DISTANCE = 140;
@@ -66,6 +62,12 @@ export function DetailDrawer({
 }: DetailDrawerProps) {
   const asideRef = useRef<HTMLElement>(null);
   const swipe = useRef<{ x: number; dx: number } | null>(null);
+  const dict = useDictionary();
+  const text = dict.drawer;
+  const sides = [
+    { value: false, label: dict.side.obv },
+    { value: true, label: dict.side.rev },
+  ];
 
   const onSwipeStart = (event: PointerEvent<HTMLElement>) => {
     const aside = asideRef.current;
@@ -153,9 +155,9 @@ export function DetailDrawer({
         ) : (
           <div className="flex flex-none items-center gap-1.5 border-b border-line px-7 py-3.5">
             <div className="mr-auto mono text-cell">{item.id}</div>
-            <Button onClick={onPrev}>↑ Prev</Button>
-            <Button onClick={onNext}>↓ Next</Button>
-            <Button onClick={onClose}>Close · Esc</Button>
+            <Button onClick={onPrev}>↑ {text.prev}</Button>
+            <Button onClick={onNext}>↓ {text.next}</Button>
+            <Button onClick={onClose}>{text.close} · Esc</Button>
           </div>
         )}
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
@@ -163,7 +165,7 @@ export function DetailDrawer({
             className={cx("flex flex-col gap-1.5 pb-[18px] pt-[22px]", padX)}
           >
             <div className="mono text-tag uppercase tracking-label text-muted">
-              {KIND_LABEL[item.kind]} · {item.origin} · {itemYear(item)}
+              {dict.kind[item.kind]} · {item.origin} · {itemYear(item)}
             </div>
             <h2
               className={cx(
@@ -192,25 +194,24 @@ export function DetailDrawer({
               fit={290}
             />
             <div className="pointer-events-none absolute left-3.5 top-3 mono text-tag text-faint">
-              {compact
-                ? "drag to orbit · pinch to zoom"
-                : "ortho · drag · scroll"}
+              {compact ? text.hintTouch : text.hintPointer}
             </div>
             {!compact && (
               <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center gap-2">
                 <Button onClick={onToggleSpin}>
-                  {spinning ? "❚❚ Pause" : "▶ Orbit"} · {rpm} RPM
+                  {spinning ? `❚❚ ${text.pause}` : `▶ ${text.orbit}`} · {rpm}{" "}
+                  RPM
                 </Button>
                 <SegmentedControl
                   framed
-                  options={SIDES}
+                  options={sides}
                   value={flipped}
                   onChange={onFlip}
                 />
                 <div className="ml-auto flex items-center rounded-xs border border-line bg-paper">
                   <button
                     type="button"
-                    aria-label="zoom out"
+                    aria-label={text.zoomOut}
                     onClick={() => onZoom(-0.2)}
                     className="h-[26px] w-7 cursor-pointer border-0 bg-transparent font-mono text-row text-ink hover:bg-raised"
                   >
@@ -221,14 +222,14 @@ export function DetailDrawer({
                   </div>
                   <button
                     type="button"
-                    aria-label="zoom in"
+                    aria-label={text.zoomIn}
                     onClick={() => onZoom(0.2)}
                     className="h-[26px] w-7 cursor-pointer border-0 bg-transparent font-mono text-row text-ink hover:bg-raised"
                   >
                     +
                   </button>
                 </div>
-                <Button onClick={onReset}>Reset</Button>
+                <Button onClick={onReset}>{text.reset}</Button>
               </div>
             )}
           </div>
@@ -236,7 +237,7 @@ export function DetailDrawer({
             <div className="flex items-center gap-2 px-4 pt-2.5">
               <button
                 type="button"
-                aria-label="Toggle orbit"
+                aria-label={text.toggleOrbit}
                 onClick={onToggleSpin}
                 className={cx(TOUCH_TILE, "h-10 w-11 text-xs")}
               >
@@ -244,14 +245,14 @@ export function DetailDrawer({
               </button>
               <SegmentedControl
                 size="fill"
-                options={SIDES}
+                options={sides}
                 value={flipped}
                 onChange={onFlip}
               />
               <div className="flex flex-none items-center rounded-xs border border-line">
                 <button
                   type="button"
-                  aria-label="Zoom out"
+                  aria-label={text.zoomOut}
                   onClick={() => onZoom(-0.2)}
                   className="size-[38px] cursor-pointer border-0 bg-transparent font-mono text-[15px] text-ink"
                 >
@@ -262,7 +263,7 @@ export function DetailDrawer({
                 </div>
                 <button
                   type="button"
-                  aria-label="Zoom in"
+                  aria-label={text.zoomIn}
                   onClick={() => onZoom(0.2)}
                   className="size-[38px] cursor-pointer border-0 bg-transparent font-mono text-[15px] text-ink"
                 >
@@ -271,7 +272,7 @@ export function DetailDrawer({
               </div>
               <button
                 type="button"
-                aria-label="Reset view"
+                aria-label={text.resetView}
                 onClick={onReset}
                 className={cx(TOUCH_TILE, "size-10 text-[15px]")}
               >
@@ -280,8 +281,8 @@ export function DetailDrawer({
             </div>
           )}
           <div className={cx("pb-12 pt-6", padX)}>
-            <SectionLabel className="pb-2.5">Specification</SectionLabel>
-            {specRows(item).map((row) => (
+            <SectionLabel className="pb-2.5">{text.specification}</SectionLabel>
+            {specRows(item, dict).map((row) => (
               <div
                 key={row.label}
                 className={cx(
@@ -306,7 +307,7 @@ export function DetailDrawer({
               onClick={onPrev}
               className={cx(TEXT_BUTTON, "h-[50px] justify-self-start px-3.5")}
             >
-              ‹ Prev
+              ‹ {text.prev}
             </button>
             <div className="whitespace-nowrap mono text-xs text-muted">
               {position}
@@ -316,7 +317,7 @@ export function DetailDrawer({
               onClick={onNext}
               className={cx(TEXT_BUTTON, "h-[50px] justify-self-end px-3.5")}
             >
-              Next ›
+              {text.next} ›
             </button>
           </div>
         )}

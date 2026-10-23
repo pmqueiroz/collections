@@ -1,9 +1,9 @@
+import type { Dictionary } from "../../i18n/dictionary";
 import {
   type CatalogItem,
   CONDITION_RANK,
   type Domain,
   itemYear,
-  KIND_LABEL,
   type SortKey,
 } from "./catalog";
 
@@ -16,7 +16,7 @@ const COMPARE: Record<SortKey, (a: CatalogItem, b: CatalogItem) => number> = {
   cond: (a, b) => CONDITION_RANK[a.cond] - CONDITION_RANK[b.cond],
 };
 
-function searchText(item: CatalogItem) {
+function searchText(item: CatalogItem, kindLabels: Dictionary["kind"]) {
   const extra =
     item.kind === "coin"
       ? [item.cur, item.mint]
@@ -31,7 +31,7 @@ function searchText(item: CatalogItem) {
     item.origin,
     item.iso,
     itemYear(item),
-    KIND_LABEL[item.kind],
+    kindLabels[item.kind],
     item.cond,
     ...extra,
   ]
@@ -49,6 +49,7 @@ export function queryCatalog(
   sort: SortKey,
   direction: SortDirection,
   query: string,
+  kindLabels: Dictionary["kind"],
 ) {
   const needle = query.trim().toLowerCase();
   const compare = COMPARE[sort];
@@ -56,7 +57,7 @@ export function queryCatalog(
     .filter(
       (item) =>
         (domain === "all" || item.kind === domain) &&
-        (!needle || searchText(item).includes(needle)),
+        (!needle || searchText(item, kindLabels).includes(needle)),
     )
     .sort(
       (a, b) =>

@@ -3,7 +3,7 @@ import type { ArtifactKind } from "../../../components/artifact/types";
 import type { ArtifactModel } from "../artifact-config";
 import {
   type CatalogItem,
-  CONDITION_NAME,
+  CONDITION_RANK,
   type Condition,
   KINDS,
   kindGeometry,
@@ -57,7 +57,7 @@ function parseAmount(value: unknown) {
 }
 
 function isCondition(value: unknown): value is Condition {
-  return typeof value === "string" && value in CONDITION_NAME;
+  return typeof value === "string" && value in CONDITION_RANK;
 }
 
 export function parseCatalogEntry({

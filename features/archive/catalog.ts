@@ -1,4 +1,5 @@
 import type { ArtifactKind, Geometry } from "../../components/artifact/types";
+import type { Dictionary } from "../../i18n/dictionary";
 import type { ArtifactModel } from "./artifact-config";
 
 export type Condition =
@@ -71,34 +72,15 @@ export type Domain = "all" | ArtifactKind;
 
 export type SortKey = "id" | "year" | "origin" | "cond";
 
-export const KIND_LABEL: Record<ArtifactKind, string> = {
-  coin: "Coin",
-  note: "Banknote",
-  card: "Phonecard",
-  stamp: "Stamp",
-};
+export const KINDS: ArtifactKind[] = ["coin", "note", "card", "stamp"];
 
-export const KINDS = Object.keys(KIND_LABEL) as ArtifactKind[];
+export const DOMAINS: Domain[] = ["all", ...KINDS];
 
-export const DOMAINS: { value: Domain; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "coin", label: "Coins" },
-  { value: "note", label: "Banknotes" },
-  { value: "card", label: "Phonecards" },
-  { value: "stamp", label: "Stamps" },
-];
-
-export function domainTitle(domain: Domain) {
-  if (domain === "all") return "Index";
-  return DOMAINS.find((option) => option.value === domain)?.label ?? "Index";
+export function domainTitle(domain: Domain, dict: Dictionary) {
+  return domain === "all" ? dict.indexTitle : dict.domain[domain];
 }
 
-export const SORTS: { value: SortKey; label: string }[] = [
-  { value: "id", label: "Catalog ID" },
-  { value: "year", label: "Year" },
-  { value: "origin", label: "Origin" },
-  { value: "cond", label: "Condition" },
-];
+export const SORTS: SortKey[] = ["id", "year", "origin", "cond"];
 
 export const CONDITION_RANK: Record<Condition, number> = {
   UNC: 1,
@@ -110,25 +92,6 @@ export const CONDITION_RANK: Record<Condition, number> = {
   VF: 4,
   Used: 4,
   F: 5,
-};
-
-export const CONDITION_NAME: Record<Condition, string> = {
-  UNC: "Uncirculated",
-  AU: "About uncirculated",
-  XF: "Extremely fine",
-  VF: "Very fine",
-  F: "Fine",
-  Mint: "Mint, unused",
-  Used: "Used",
-  MNH: "Mint never hinged",
-  MH: "Mint hinged",
-};
-
-export const MESH_LABEL: Record<ArtifactKind, string> = {
-  coin: "Cylinder · beveled rim · 40-seg reeded edge",
-  note: "Plane · 0.2 mm · rested curve, 11 seg",
-  card: "ID-1 · r 3.18 mm · flush chip indent",
-  stamp: "Plane · die-cut perforation",
 };
 
 export const CARD_DIMENSIONS = "85.60 × 53.98 × 0.76 mm";
@@ -172,6 +135,6 @@ export function amountLabel(item: CatalogItem) {
   return item.amount > 1 ? `${item.amount}x` : "";
 }
 
-export function itemSummary(item: CatalogItem) {
-  return `${KIND_LABEL[item.kind]} from ${item.origin}. ${itemSubtitle(item)}.`;
+export function itemSummary(item: CatalogItem, dict: Dictionary) {
+  return dict.summary(dict.kind[item.kind], item.origin, itemSubtitle(item));
 }

@@ -19,6 +19,7 @@ import type {
   Fit,
   Geometry,
 } from "../../../components/artifact/types";
+import { useDictionary } from "../../../i18n/locale-provider";
 import { templateDimensions } from "./download-template";
 
 const MAX_WIDTH = 330;
@@ -81,6 +82,7 @@ export function FaceEditor({
 }: FaceEditorProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const [maxWidth, setMaxWidth] = useState(MAX_WIDTH);
+  const dict = useDictionary();
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -146,7 +148,7 @@ export function FaceEditor({
   return (
     <section
       ref={sectionRef}
-      aria-label={`${sideLabel} face editor`}
+      aria-label={dict.editor.faceEditor(sideLabel)}
       onDragOver={(event) => event.preventDefault()}
       onDrop={(event) => {
         event.preventDefault();
@@ -180,7 +182,7 @@ export function FaceEditor({
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center mono text-meta text-faint">
-                drop image
+                {dict.editor.dropImage}
               </div>
             )}
             <div

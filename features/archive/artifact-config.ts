@@ -1,5 +1,6 @@
 import { DEFAULT_FIT } from "../../components/artifact/geometry";
 import type { FaceSide, Fit, Geometry } from "../../components/artifact/types";
+import { type Locale, localePath } from "../../i18n/locales";
 import { type CatalogItem, itemYear } from "./catalog";
 
 export type ArtifactModel = {
@@ -21,6 +22,10 @@ export function blankConfig(geo: Geometry): ArtifactConfig {
     fo: { ...DEFAULT_FIT },
     fr: { ...DEFAULT_FIT },
   };
+}
+
+export function relicPagePath(locale: Locale, id: string) {
+  return localePath(locale, `/relics/${encodeURIComponent(id)}`);
 }
 
 export function relicAssetUrl(id: string, face: FaceSide) {

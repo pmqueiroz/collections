@@ -1,5 +1,6 @@
 import type { MouseEvent } from "react";
 import { cx } from "../../components/ui/cx";
+import { useDictionary } from "../../i18n/locale-provider";
 import {
   amountLabel,
   type CatalogItem,
@@ -40,6 +41,7 @@ export function ListView({
   onHover,
   onUnhover,
 }: ListViewProps) {
+  const dict = useDictionary();
   const columns = COLUMNS[domain];
   const gridTemplateColumns = `32px 24px ${columns.map((column) => column.track).join(" ")}`;
 
@@ -91,7 +93,7 @@ export function ListView({
             {columns.map((column) => {
               const sortKey = column.sort;
               const arrow = sortKey ? sortArrow(sortKey, sort, direction) : "";
-              const label = `${column.label}${arrow ? ` ${arrow}` : ""}`;
+              const label = `${dict.columns[column.label]}${arrow ? ` ${arrow}` : ""}`;
               const align = column.type === "num" ? "text-right" : "text-left";
               if (!sortKey)
                 return (
@@ -140,7 +142,7 @@ export function ListView({
                     CELL_CLASS[column.type],
                   )}
                 >
-                  {cellValue(item, column.field)}
+                  {cellValue(item, column.field, dict)}
                 </div>
               ))}
             </button>
