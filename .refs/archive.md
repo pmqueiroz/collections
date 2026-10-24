@@ -146,14 +146,24 @@ rewritten as React + Tailwind.
     (`https://relics.pmqueiroz.dev`), so image URLs are absolute
     there; change it if the domain moves.
   - **Preview card** (`opengraph-image.tsx`, 1200×630 PNG, prerendered per
-    id): face image (obverse, else reverse) on the left, kind/origin/year,
-    title, `itemSubtitle`, id on the right, site colors hard-coded since
-    Satori cannot read CSS vars. Without a face image it draws a flat
-    per-kind silhouette. Satori's resvg does not paint WebP (it parses the
-    size, then renders blank), so the asset is converted to PNG with
-    `sharp` (explicit dependency, pinned to Next's version) first. The raw
-    asset is shown with `contain`, not the item's `fit`, so a two-sided
-    scan shows both sides.
+    id), laid out per the brand sheet ([brand.md](./brand.md)): tray panel
+    on the left with the face image (obverse, else reverse) and the kind
+    label; id, title, four spec rows and the lockup on the right. The rows
+    come from `specEntries` (`columns.ts`, the same source as the drawer's
+    `specRows`), picked per kind by `SHARE_ROWS`: origin, year, one
+    kind-defining field (metal, printer, issuer, printing), condition. Long
+    values ellipsize. Without a face image it draws a flat per-kind
+    silhouette. Face loading and the silhouette live in
+    `features/archive/og/face.tsx`, shared with the index card. Satori's
+    resvg does not paint WebP (it parses the size, then renders blank), so
+    the asset is converted to PNG with `sharp` (explicit dependency, pinned
+    to Next's version) first. The raw asset is shown with `contain`, not the
+    item's `fit`, so a two-sided scan shows both sides.
+  - **Index card** (`app/[lang]/opengraph-image.tsx`, one per locale):
+    lockup, the localized domain names as the headline, record count /
+    non-empty domain count / year span (`dict.share`), and a 2×2 tile per
+    kind showing the first item with a face scan (silhouette otherwise) and
+    its count. Inherited by `/<lang>` only; relic pages override it.
 - **Index URL state**: `useIndexParams` keeps the index controls in the
   query string, on `/<lang>` and `/<lang>/relics/<id>` alike: `tab`
   (domain), `sort`, `dir` (`asc`/`desc`), `q` (search) and `view`

@@ -11,6 +11,8 @@ explain the *why* and the gotchas.
   extension points, conventions. Fill in as the project takes shape.
 - [archive.md](./.refs/archive.md) — the Relics catalog feature: catalog,
   views, keyboard rules, texture editor, 3D artifact viewer.
+- [brand.md](./.refs/brand.md) — name, mark, lockup, palette, type, icons,
+  voice; how the brand renders in OG images.
 - [relic.md](./.refs/relic.md) — the `.relic` container: binary layout,
   manifest schema, flags, who reads/writes it.
 - [i18n.md](./.refs/i18n.md) — locales (`en`, `pt-BR`), `/[lang]` routing,
