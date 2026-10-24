@@ -43,6 +43,13 @@ export const en = {
   },
   summary: (kind: string, origin: string, subtitle: string) =>
     `${kind} from ${origin}. ${subtitle}.`,
+  share: {
+    records: (count: number) =>
+      `${count} ${count === 1 ? "record" : "records"}`,
+    domains: (count: number) =>
+      `${count} ${count === 1 ? "domain" : "domains"}`,
+    indexAlt: "The Relics catalog",
+  },
   header: {
     sort: "Sort",
     sortBy: "Sort by",

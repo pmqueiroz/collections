@@ -45,6 +45,13 @@ export const ptBR: Dictionary = {
   },
   summary: (kind: string, origin: string, subtitle: string) =>
     `${kind}, ${origin}. ${subtitle}.`,
+  share: {
+    records: (count: number) =>
+      `${count} ${count === 1 ? "registro" : "registros"}`,
+    domains: (count: number) =>
+      `${count} ${count === 1 ? "domínio" : "domínios"}`,
+    indexAlt: "O catálogo Relics",
+  },
   header: {
     sort: "Ordem",
     sortBy: "Ordenar por",
