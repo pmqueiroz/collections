@@ -1,3 +1,4 @@
+import { DEFAULT_FIT } from "../../../components/artifact/geometry";
 import type {
   ArtifactKind,
   FaceSide,
@@ -14,6 +15,8 @@ import {
   type RelicAssets,
   type RelicContents,
 } from "../relic/relic-file";
+import { templateDimensions } from "./download-template";
+import { cropToFace } from "./ingest-image";
 
 export type TextureDraft = ArtifactConfig & {
   kind: ArtifactKind;
@@ -21,6 +24,7 @@ export type TextureDraft = ArtifactConfig & {
 };
 
 const FACES: FaceSide[] = ["obv", "rev"];
+const FIT_KEY = { obv: "fo", rev: "fr" } as const;
 
 export function blankTexture(kind: ArtifactKind): TextureDraft {
   return { kind, meta: {}, ...blankConfig(kindGeometry(kind)) };
@@ -49,14 +53,24 @@ function assetDataUrl(asset: RelicAsset) {
 }
 
 export async function encodeTexture(draft: TextureDraft) {
+  const [faceWidth, faceHeight] = templateDimensions(draft.kind, draft.geo);
   const assets: RelicAssets = {};
-  for (const face of FACES)
-    if (draft[face]) assets[face] = await dataUrlAsset(draft[face]);
+  for (const face of FACES) {
+    const src = draft[face];
+    if (!src) continue;
+    const cropped = await cropToFace(
+      src,
+      draft[FIT_KEY[face]],
+      faceWidth,
+      faceHeight,
+    );
+    assets[face] = await dataUrlAsset(cropped);
+  }
   return encodeRelic({
     manifest: {
       ...draft.meta,
       kind: draft.kind,
-      model: { geo: draft.geo, fo: draft.fo, fr: draft.fr },
+      model: { geo: draft.geo, fo: { ...DEFAULT_FIT }, fr: { ...DEFAULT_FIT } },
     },
     assets,
   });
