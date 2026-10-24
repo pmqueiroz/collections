@@ -1,16 +1,21 @@
 import { ImageResponse } from "next/og";
-import sharp from "sharp";
 import type { ArtifactKind } from "../../../../components/artifact/types";
+import { Lockup } from "../../../../components/brand/lockup";
+import { PALETTE } from "../../../../components/brand/palette";
 import {
-  type CatalogItem,
-  itemSubtitle,
-  itemYear,
-} from "../../../../features/archive/catalog";
+  type SpecLabel,
+  specEntries,
+} from "../../../../features/archive/columns";
+import { Face, faceImage } from "../../../../features/archive/og/face";
 import {
   loadCatalog,
   loadCatalogItem,
-  readRelicAsset,
 } from "../../../../features/archive/relic/load-catalog";
+import {
+  loadOgFonts,
+  OG_MONO,
+  OG_SANS,
+} from "../../../../features/brand/og-fonts";
 import { dictionaryFor } from "../../../../i18n/dictionary";
 import { DEFAULT_LOCALE, hasLocale } from "../../../../i18n/locales";
 
@@ -19,52 +24,16 @@ export const contentType = "image/png";
 
 const OG_FACE_SIZE = 840;
 
-const PAPER = "#f5f4f0";
-const SURFACE = "#ecebe6";
-const LINE = "#dfded8";
-const INK = "#161615";
-const MUTED = "#6e6d6a";
-const FAINT = "#a8a7a2";
-
-const SILHOUETTE: Record<
-  ArtifactKind,
-  { width: number; height: number; radius: number }
-> = {
-  coin: { width: 300, height: 300, radius: 150 },
-  note: { width: 420, height: 213, radius: 4 },
-  card: { width: 380, height: 240, radius: 14 },
-  stamp: { width: 250, height: 300, radius: 2 },
+const SHARE_ROWS: Record<ArtifactKind, SpecLabel[]> = {
+  coin: ["origin", "mintYear", "metal", "cond"],
+  note: ["origin", "issueYear", "printer", "cond"],
+  card: ["origin", "issueYear", "issuer", "cond"],
+  stamp: ["origin", "issueYear", "printing", "cond"],
 };
 
 export async function generateStaticParams() {
   const catalog = await loadCatalog();
   return catalog.map((item) => ({ id: item.id }));
-}
-
-async function faceImage(item: CatalogItem) {
-  const side = item.faces.obv ? "obv" : item.faces.rev ? "rev" : null;
-  const asset = side ? await readRelicAsset(item.id, side) : null;
-  if (!asset) return null;
-  const png = await sharp(asset.bytes)
-    .resize(OG_FACE_SIZE, OG_FACE_SIZE, { fit: "inside" })
-    .png()
-    .toBuffer();
-  return `data:image/png;base64,${png.toString("base64")}`;
-}
-
-function Silhouette({ kind }: { kind: ArtifactKind }) {
-  const shape = SILHOUETTE[kind];
-  return (
-    <div
-      style={{
-        width: shape.width,
-        height: shape.height,
-        borderRadius: shape.radius,
-        background: MUTED,
-        opacity: 0.85,
-      }}
-    />
-  );
 }
 
 export async function generateImageMetadata({
@@ -86,7 +55,15 @@ export default async function Image({
   const item = await loadCatalogItem(id);
   if (!item || !hasLocale(lang)) return new Response(null, { status: 404 });
   const dict = dictionaryFor(lang);
-  const image = await faceImage(item);
+  const [image, fonts] = await Promise.all([
+    faceImage(item, OG_FACE_SIZE),
+    loadOgFonts(),
+  ]);
+  const entries = new Map(specEntries(item, dict));
+  const rows = SHARE_ROWS[item.kind].map((label) => ({
+    label: dict.spec[label],
+    value: entries.get(label) ?? "—",
+  }));
 
   return new ImageResponse(
     <div
@@ -94,76 +71,116 @@ export default async function Image({
         width: "100%",
         height: "100%",
         display: "flex",
-        background: PAPER,
-        color: INK,
-        padding: 56,
-        gap: 56,
+        background: PALETTE.paper,
+        color: PALETTE.ink,
+        fontFamily: OG_SANS,
       }}
     >
       <div
         style={{
-          width: 500,
+          position: "relative",
+          width: 560,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: SURFACE,
-          borderRadius: 6,
-          padding: 40,
+          padding: 64,
+          background: PALETTE.tray,
+          borderRight: `1px solid ${PALETTE.rule}`,
         }}
       >
-        {image ? (
-          <img
-            src={image}
-            alt=""
-            style={{ width: "100%", height: "100%", objectFit: "contain" }}
-          />
-        ) : (
-          <Silhouette kind={item.kind} />
-        )}
-      </div>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <Face image={image} kind={item.kind} />
         <div
           style={{
-            display: "flex",
-            fontSize: 22,
-            letterSpacing: 3,
+            position: "absolute",
+            left: 32,
+            top: 28,
+            fontFamily: OG_MONO,
+            fontSize: 15,
+            letterSpacing: 1.2,
             textTransform: "uppercase",
-            color: MUTED,
+            color: PALETTE.graphite,
           }}
         >
-          {`${dict.kind[item.kind]} · ${item.origin} · ${itemYear(item)}`}
+          {dict.kind[item.kind]}
+        </div>
+      </div>
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          display: "flex",
+          flexDirection: "column",
+          padding: "56px 64px 52px",
+        }}
+      >
+        <div
+          style={{ fontFamily: OG_MONO, fontSize: 24, color: PALETTE.graphite }}
+        >
+          {item.id}
         </div>
         <div
           style={{
-            display: "flex",
-            marginTop: 20,
-            fontSize: 64,
-            lineHeight: 1.08,
-            letterSpacing: -1.5,
+            marginTop: 14,
+            fontSize: 72,
+            fontWeight: 500,
+            letterSpacing: -3.24,
+            lineHeight: 1,
           }}
         >
           {item.title}
         </div>
         <div
-          style={{ display: "flex", marginTop: 24, fontSize: 28, color: MUTED }}
-        >
-          {itemSubtitle(item)}
-        </div>
-        <div
           style={{
-            display: "flex",
             marginTop: "auto",
-            paddingTop: 24,
-            borderTop: `1px solid ${LINE}`,
-            justifyContent: "space-between",
-            fontSize: 24,
+            display: "flex",
+            flexDirection: "column",
+            borderTop: `1px solid ${PALETTE.rule}`,
           }}
         >
-          <span>{item.id}</span>
-          <span style={{ color: FAINT }}>{dict.site.name}</span>
+          {rows.map((row) => (
+            <div
+              key={row.label}
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                gap: 16,
+                padding: "11px 0",
+                borderBottom: `1px solid ${PALETTE.rule}`,
+                fontFamily: OG_MONO,
+              }}
+            >
+              <div
+                style={{
+                  width: 180,
+                  flex: "none",
+                  fontSize: 15,
+                  letterSpacing: 0.6,
+                  textTransform: "uppercase",
+                  color: PALETTE.graphite,
+                }}
+              >
+                {row.label}
+              </div>
+              <div
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  fontSize: 22,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {row.value}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", marginTop: 28 }}>
+          <Lockup name={dict.site.name} size={28} />
         </div>
       </div>
     </div>,
-    size,
+    { ...size, fonts },
   );
 }
