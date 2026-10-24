@@ -93,8 +93,17 @@ either is a decoder change; for zstd the spec must first say whether
   BUFF, must be 4-aligned and in range. `type` must be `image/webp`,
   `image/png` or `image/jpeg` (KTX2 is not accepted: CSS can't display it).
   The texture editor only ever produces `image/webp`; PNG/JPEG stay valid
-  for the decoder, and an opened relic's existing bytes are kept as-is.
+  for the decoder. An opened relic's existing bytes are kept as-is only
+  when the face is already baked (default fit, image aspect within 1% of
+  the face's); otherwise the save crops it (see **Crop on save** in
+  [archive.md](./archive.md#texture-editor)).
   `encodeRelic` writes `assets` itself; callers never set it.
+- **Saved faces are baked**: files written by the editors store only the
+  visible face area and carry `fo`/`fr` = `DEFAULT_FIT`. Older or
+  hand-made files may still hold a full scan with a non-default fit; the
+  viewer renders both the same way. Every relic in `relics/` was baked
+  once by a throwaway Node + `sharp` script mirroring `cropToFace` (not
+  committed), so all current files are already cropped.
 - **Shared faces**: when `obv` and `rev` carry byte-identical images (one
   scan used for both sides), `encodeRelic` writes the bytes once and both
   entries point at the same `offset`/`length`. Overlapping entries are

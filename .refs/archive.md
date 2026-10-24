@@ -252,8 +252,8 @@ mesh and faces, and downloads the result as a `.relic` to commit.
   long edge and re-encoded as WebP at quality 0.75 (textures don't need
   more); the canvas re-encode also drops EXIF/GPS/ICC metadata. The image keeps
   its own aspect ratio, so a scan holding both sides can be panned to one
-  half per face (see **Face images** under [Artifact viewer](#artifact-viewer-componentsartifact)); uploading that same scan
-  to both sides is stored once in the relic. "Template ↓"
+  half per face (see **Face images** under [Artifact viewer](#artifact-viewer-componentsartifact)); only the visible part
+  of each is saved (see **Crop on save**). "Template ↓"
   exports a 600 dpi PNG print/scan template for the current side and mesh.
 - **WebP required**: there is no PNG/JPEG fallback. On mount the editor
   probes `canEncodeWebp()` (1×1 canvas `toDataURL("image/webp")`); when the
@@ -261,6 +261,20 @@ mesh and faces, and downloads the result as a `.relic` to commit.
   Download button are replaced by a notice (`editor.webpUnsupported`) telling
   the user to switch to Chrome, Edge or Firefox. `ingestImage` also throws
   if WebP comes back as anything else.
+- **Crop on save**: the draft keeps the full uploaded image so it can be
+  re-panned, but `encodeTexture` (Download and the relic editor's Save)
+  bakes each face with `cropToFace` (`ingest-image.ts`): the image is drawn
+  through its fit (same cover size, translate/rotate/scale as
+  `fitTransform`) onto a canvas with the face's aspect
+  (`templateDimensions`), at the source's own pixel density capped at
+  1024px on the long edge, re-encoded as WebP 0.75. The manifest then gets
+  `DEFAULT_FIT` for both faces, so the viewer shows the same thing from a
+  smaller file. Areas the image does not cover (rotation, pan past the
+  edge) stay transparent and show the face `backing`. A face that is
+  already baked (default fit, aspect within 1%) is kept byte-for-byte, so
+  re-saving does not re-encode it. Cropping both faces out of one
+  side-by-side scan gives two different images, so the shared-bytes
+  dedupe no longer applies to it.
 - **Mesh defaults** resets only the mesh; **Clear** resets the whole draft
   for the current kind, `meta` included (detaches it from its entry).
 - **Open…** reads a `.relic`: asset bytes become in-memory data URLs so the
