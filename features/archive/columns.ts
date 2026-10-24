@@ -129,8 +129,6 @@ function withUnit(value: string, unit: string) {
   return value === "—" ? value : `${value} ${unit}`;
 }
 
-type SpecLabel = keyof Dictionary["spec"];
-
 function kindSpec(item: CatalogItem): [SpecLabel, string][] {
   switch (item.kind) {
     case "coin":
@@ -170,8 +168,13 @@ function kindSpec(item: CatalogItem): [SpecLabel, string][] {
   }
 }
 
-export function specRows(item: CatalogItem, dict: Dictionary): SpecRow[] {
-  const rows: [SpecLabel, string][] = [
+export type SpecLabel = keyof Dictionary["spec"];
+
+export function specEntries(
+  item: CatalogItem,
+  dict: Dictionary,
+): [SpecLabel, string][] {
+  return [
     ["id", item.id],
     ["domain", dict.kind[item.kind]],
     ["title", item.title],
@@ -182,5 +185,11 @@ export function specRows(item: CatalogItem, dict: Dictionary): SpecRow[] {
     ...kindSpec(item),
     ["mesh", dict.mesh[item.kind]],
   ];
-  return rows.map(([label, value]) => ({ label: dict.spec[label], value }));
+}
+
+export function specRows(item: CatalogItem, dict: Dictionary): SpecRow[] {
+  return specEntries(item, dict).map(([label, value]) => ({
+    label: dict.spec[label],
+    value,
+  }));
 }
