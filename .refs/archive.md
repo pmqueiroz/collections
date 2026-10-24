@@ -1,6 +1,6 @@
 # Archive Index
 
-The home route (`/<lang>`, see [i18n.md](./i18n.md)) is the **Master Index**: a catalog of coins, banknotes,
+The home route (`/<lang>`, see [i18n.md](./i18n.md)) is **Relics**: a catalog of coins, banknotes,
 phonecards and stamps with a list view, an artifact grid, a hover preview, a
 detail drawer with a 3D viewer, and a texture editor that exports texture
 files.
@@ -139,7 +139,7 @@ rewritten as React + Tailwind.
     `/<lang>/relics/<id>`
     never remounts `ArchiveIndex`.
   - **Metadata**: `generateMetadata` sets title
-    (`<title> · <id> · Master Index`), `itemSummary` as description
+    (`<title> · <id> · Relics`), `itemSummary` as description
     (localized), `canonical` + hreflang alternates, Open Graph (with
     `locale`) and `summary_large_image` Twitter tags. `metadataBase` in
     `app/[lang]/layout.tsx` is the production origin

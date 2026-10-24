@@ -9,7 +9,7 @@ explain the *why* and the gotchas.
   code** (docs go in `.refs/`), reusable-component discipline. Read first.
 - [architecture.md](./.refs/architecture.md) — stack, layout, data model,
   extension points, conventions. Fill in as the project takes shape.
-- [archive.md](./.refs/archive.md) — the Master Index feature: catalog,
+- [archive.md](./.refs/archive.md) — the Relics catalog feature: catalog,
   views, keyboard rules, texture editor, 3D artifact viewer.
 - [relic.md](./.refs/relic.md) — the `.relic` container: binary layout,
   manifest schema, flags, who reads/writes it.

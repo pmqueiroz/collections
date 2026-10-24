@@ -2,9 +2,9 @@ import type { Dictionary } from "./en";
 
 export const ptBR: Dictionary = {
   site: {
-    name: "Master Index",
+    name: "Relics",
     description: "Catálogo de moedas, cédulas, cartões telefônicos e selos.",
-    relicAlt: "Relíquia do Master Index",
+    relicAlt: "Uma relíquia do Relics",
   },
   kind: {
     coin: "Moeda",

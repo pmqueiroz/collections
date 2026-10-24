@@ -1,8 +1,8 @@
 export const en = {
   site: {
-    name: "Master Index",
+    name: "Relics",
     description: "Catalog of coins, banknotes, phonecards and stamps.",
-    relicAlt: "Master Index relic",
+    relicAlt: "A relic from Relics",
   },
   kind: {
     coin: "Coin",
