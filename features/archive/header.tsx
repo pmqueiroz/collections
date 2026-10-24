@@ -1,3 +1,4 @@
+import { Lockup } from "../../components/brand/lockup";
 import { Button } from "../../components/ui/button";
 import { DevLink } from "../../components/ui/dev-link";
 import { SegmentedControl } from "../../components/ui/segmented-control";
@@ -59,8 +60,10 @@ export function Header({
   return (
     <header className="sticky top-0 z-20 hidden border-b border-line bg-paper pt-safe regular:block">
       <div className="flex flex-wrap items-center gap-x-7 gap-y-3 px-7 py-3.5">
-        <div className="flex items-baseline gap-2.5">
-          <h1 className="text-sm font-semibold">{dict.site.name}</h1>
+        <div className="flex items-center gap-2.5">
+          <h1>
+            <Lockup name={dict.site.name} size={16} />
+          </h1>
           <div className="mono text-control text-faint">
             {shown} / {total}
           </div>
