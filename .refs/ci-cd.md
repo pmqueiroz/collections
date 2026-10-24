@@ -16,17 +16,19 @@ so bumping the file bumps CI.
   Vercel CLI (`vercel@65.1.0`) and runs the prebuilt flow:
   `vercel pull --yes --environment=production` → `vercel build --prod` →
   `vercel deploy --prebuilt --prod --archive=tgz`. Runs in the GitHub `production`
-  environment with URL https://collections.pmqueiroz.dev.
+  environment with URL https://relics.pmqueiroz.dev.
 
 ## Vercel project
 
-- Project `collections` on team `peam`, framework `nextjs`.
+- Project `relics` on team `peam`, framework `nextjs` (renamed from
+  `collections`; the project ID did not change, so the CI variables still
+  hold).
 - **No Git integration.** The project was created with `vercel project add`
   and is not connected to the GitHub repo, so Vercel never builds on its own;
   GitHub Actions is the only deploy path. Do not run "Connect Git Repository"
   in the dashboard, it would double-deploy.
 - Local link: `.vercel/project.json` (gitignored), via
-  `vercel link --project collections --team peam`.
+  `vercel link --project relics --team peam`.
 - The app reads no env vars. `ARCHIVE_SESSION_SECRET`, `ARCHIVE_USER` and
   `ARCHIVE_PASSWORD` may still be set on Vercel from the removed sign-in;
   they are unused and safe to delete. `vercel pull` still runs in CI.
@@ -41,19 +43,27 @@ so bumping the file bumps CI.
 
 ## Domain
 
-`collections.pmqueiroz.dev` is attached to the project. DNS for
-`pmqueiroz.dev` is on Cloudflare (`ezra`/`demi.ns.cloudflare.com`) and is
-managed manually, because Wrangler has no DNS commands and its OAuth scopes
-cannot edit DNS records. Required records:
+`relics.pmqueiroz.dev` is the production domain. `collections.pmqueiroz.dev`
+(the pre-rebrand domain) stays attached to the project as a 308 redirect to
+it, so old links keep working. GitHub repo is `pmqueiroz/relics` (renamed from
+`pmqueiroz/collections`; GitHub redirects the old URL).
 
-| Type  | Name                   | Value                                   | Proxy    |
-| ----- | ---------------------- | --------------------------------------- | -------- |
-| CNAME | `collections`          | `fafa465878c3eb4d.vercel-dns-017.com`   | DNS only |
-| TXT   | `_vercel`              | `vc-domain-verify=collections.pmqueiroz.dev,bd4c3d1433d2a95f746d` | — |
+DNS for `pmqueiroz.dev` is on Cloudflare (`ezra`/`demi.ns.cloudflare.com`)
+and is managed manually, because Wrangler has no DNS commands and its OAuth
+scopes cannot edit DNS records. Required records:
 
-The TXT record is needed because `pmqueiroz.dev` is already registered with
-another Vercel team. Keep the CNAME unproxied (grey cloud) so Vercel can
-issue the certificate.
+| Type  | Name          | Value                                                             | Proxy    |
+| ----- | ------------- | ----------------------------------------------------------------- | -------- |
+| CNAME | `relics`      | `fafa465878c3eb4d.vercel-dns-017.com`                             | DNS only |
+| CNAME | `collections` | `fafa465878c3eb4d.vercel-dns-017.com`                             | DNS only |
+| TXT   | `_vercel`     | `vc-domain-verify=relics.pmqueiroz.dev,f352bfda676ab717f822`      | —        |
+| TXT   | `_vercel`     | `vc-domain-verify=collections.pmqueiroz.dev,bd4c3d1433d2a95f746d` | —        |
+
+The TXT records are needed because `pmqueiroz.dev` is already registered with
+another Vercel team; each attached subdomain needs its own `_vercel` value.
+Keep the CNAMEs unproxied (grey cloud) so Vercel can issue the certificates.
+`metadataBase` in `app/[lang]/layout.tsx` and the CI `production`
+environment URL carry the domain; change both if it moves again.
 
 ## Local gate: lefthook
 

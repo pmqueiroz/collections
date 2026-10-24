@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: https://collections.pmqueiroz.dev
+      url: https://relics.pmqueiroz.dev
     concurrency:
       group: deploy-production
       cancel-in-progress: false

@@ -143,7 +143,7 @@ rewritten as React + Tailwind.
     (localized), `canonical` + hreflang alternates, Open Graph (with
     `locale`) and `summary_large_image` Twitter tags. `metadataBase` in
     `app/[lang]/layout.tsx` is the production origin
-    (`https://collections.pmqueiroz.dev`), so image URLs are absolute
+    (`https://relics.pmqueiroz.dev`), so image URLs are absolute
     there; change it if the domain moves.
   - **Preview card** (`opengraph-image.tsx`, 1200×630 PNG, prerendered per
     id): face image (obverse, else reverse) on the left, kind/origin/year,

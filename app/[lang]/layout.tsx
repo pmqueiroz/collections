@@ -32,7 +32,7 @@ export async function generateMetadata({
   if (!hasLocale(lang)) return {};
   const dict = dictionaryFor(lang);
   return {
-    metadataBase: new URL("https://collections.pmqueiroz.dev"),
+    metadataBase: new URL("https://relics.pmqueiroz.dev"),
     title: dict.site.name,
     description: dict.site.description,
     appleWebApp: { capable: true, title: dict.site.name },
